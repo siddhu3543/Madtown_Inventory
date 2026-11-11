@@ -1,0 +1,2293 @@
+[
+ {
+  "id": "G-01",
+  "cells": [
+   "Know the location and holder of every item at any time",
+   "100 percent of active items show a current holder and status; no item shows two holders for one unit"
+  ]
+ },
+ {
+  "id": "G-02",
+  "cells": [
+   "Stop losing equipment on loans",
+   "Every loan has a borrower, a due date and a check-in record; overdue loans are chased automatically"
+  ]
+ },
+ {
+  "id": "G-03",
+  "cells": [
+   "Record condition and damage with evidence",
+   "Check-out and check-in photos exist for cameras and lenses; damage opens a repair or incident record"
+  ]
+ },
+ {
+  "id": "G-04",
+  "cells": [
+   "Track repairs and servicing as history, not free text",
+   "Each repair or service is a dated event with vendor, cost and outcome"
+  ]
+ },
+ {
+  "id": "G-05",
+  "cells": [
+   "Treat kits and accessories as part of their parent item",
+   "A kit cannot be checked in as complete while a required part is missing"
+  ]
+ },
+ {
+  "id": "G-06",
+  "cells": [
+   "Run purchases from need to stock",
+   "Every to-buy item links to the item it replaces or supports, and becomes an inventory item on receipt"
+  ]
+ },
+ {
+  "id": "G-07",
+  "cells": [
+   "Make audits fast",
+   "A full walkthrough of the inventory can be completed on a phone by scanning QR labels"
+  ]
+ },
+ {
+  "id": "G-08",
+  "cells": [
+   "Keep a complete audit trail",
+   "Every change records who, when, before and after; nobody can edit the log"
+  ]
+ },
+ {
+  "id": "G-09",
+  "cells": [
+   "Migrate without losing the existing record MTMH_115 Godox V1S Flash, which belongs to Anand per Naveen) rows (lost, Need replacement). Ten rows have no stock image.",
+   "All 103 rows of Sheet1 (MTMH_101 to MTMH_203), the To buy tab and the Not yet sorted tab are imported with IDs preserved gear is not counted as Madtown assets"
+  ]
+ },
+ {
+  "id": "FR-CAT-001",
+  "cells": [
+   "Store each item with a unique, immutable Item ID in the format MTMH_NNN. Existing IDs MTMH_101 to MTMH_203 are preserved exactly; new items take the next free number (MTMH_204 onward); IDs are never reused, even after an item is retired.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-002",
+  "cells": [
+   "Each item has Item name, Model number, Type, Brand, Serial number, Owner, Status, Condition, Current holder, Home location, Stock image, Latest photo and Notes (see section 6).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-003",
+  "cells": [
+   "Type is a controlled list derived from the sheet: Camera, Lens, Audio, Light, Light accessory, Accessory, Tripod, Stand, Reflector, Backdrop, SD Card, Battery, Drone. Managers can add a value; the Owner approves new values.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-004",
+  "cells": [
+   "Support an optional Subtype for the 44 items typed Accessory (for example Bag or case, Charger, Card reader, Filter, Rig part, Clamp, Gimbal, Monitor) so lists can be filtered without changing the sheet Type.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-005",
+  "cells": [
+   "Support two quantity modes: Single (one tagged physical unit, for example MTMH_101 Sony FX3) and Counted (a quantity of identical units, for example MTMH_191 Small Spring Clamps pack of 20, MTMH_141 Sony NP-FZ100 batteries, stock 6).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-006",
+  "cells": [
+   "For Counted items, track quantity per holder and per status (for example MTMH_110 E-Image tripod: 1 with Madtown, 1 with Kittu) instead of a comma-separate d holder field.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-007",
+  "cells": [
+   "Allow a Counted item to be split into Single units later, each with its own ID or a unit suffix, without losing history (Siddharth to propose the suffix format, see section 14).",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-008",
+  "cells": [
+   "Record Owner separately from Current holder. Default Owner is Madtown. Items owned by a person (for example MTMH_115, owned by Anand) are excluded from Madtown asset value reports.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-009",
+  "cells": [
+   "Allow Model number to be blank or TBD with a flag, and show a To verify list (for example MTMH_202 Lighting Umbrella: TBD, Naveen to provide).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-010",
+  "cells": [
+   "Provide search by ID, name, model number, type, holder, status and condition, with results in under 1 second for the full catalog.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-011",
+  "cells": [
+   "Provide filters and saved views: Out now, Overdue, In repair, Lost, Missing, Bad condition, Owned by others, Missing photos, To verify.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-012",
+  "cells": [
+   "Record purchase details where known: purchase date, vendor, order number, price, invoice file, warranty end (for example MTMH_203: Kamal Imaging, order KI/SO/30101, 19 Sep 2026, Rs 21,999 incl GST). Price fields are hidden from Team members.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-013",
+  "cells": [
+   "Allow an item to be retired, sold or written off with a reason and Owner approval; retired items stay searchable but are excluded from active counts.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-014",
+  "cells": [
+   "Keep the original sheet row number and original raw values for each imported item for traceability.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CAT-015",
+  "cells": [
+   "Show a To verify flag with reason on items whose stock, model or details are unconfirmed (for example MTMH_197 Sony BC-QZ1 charger: stock of 3 is TO VERIFY; MTMH_198 to MTMH_201 need details from Anand).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-001",
+  "cells": [
+   "Generate one QR code per item and per kit, encoding a short URL in the form inventory.madto wn.in/i/MTMH_1 01 (domain to be confirmed).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-002",
+  "cells": [
+   "Scanning with the phone camera opens the item page; an in-app scan button opens the camera directly.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-003",
+  "cells": [
+   "The item page shows the current status and the correct primary action (Check out, Check in, Report issue).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-004",
+  "cells": [
+   "Provide a Print labels page that outputs a printable sheet of QR labels with ID and name, for selected or new items, sized for 25 mm by 25 mm durable labels.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-005",
+  "cells": [
+   "Support labelling the pouch, case or kit for tiny items (lens caps, cables, filters) instead of the item itself.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-QR-006",
+  "cells": [
+   "Fallback search by typed ID or name when a label is worn or missing.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-001",
+  "cells": [
+   "Support a parent item link so an accessory belongs to a main item (for example MTMH_163 SmallRig Cage for FX3 belongs to MTMH_101 Sony FX3; MTMH_158 Digitex F750 Battery relates to MTMH_159 Smart Pro F750 Battery Charger).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-002",
+  "cells": [
+   "Support kits: a named group of items with a contents list, each part keeping its own ID (for example DJI RS4 Pro Combo Gimbal MTMH_182 with MTMH_183 BG70 battery grip and MTMH_184 Twist Grip; Godox SA projection set MTMH_168 to MTMH_178).",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-003",
+  "cells": [
+   "Each kit line has a quantity and a Required flag (required parts block a complete check-in; optional parts warn).",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-004",
+  "cells": [
+   "A kit can be checked out and checked in as one unit; the check-in shows a checklist of its contents.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-005",
+  "cells": [
+   "Record Missing part entries against a parent item (for example MTMH_109 DJI Mic 2: charging cable missing) and link them to a to-buy item.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-006",
+  "cells": [
+   "Record detached accessories held by someone else (for example MTMH_119 AD600 PRO battery and charger with Anand for timely charging) without marking the parent as checked out.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-007",
+  "cells": [
+   "Record the case or bag an item travels in as a link to a case item (for example MTMH_138 DJI Air 2S now carried in a smaller camera bag; MTMH_190 Ulanzi Hard Shell Camera Bag; MTMH_189 Magic line Photo Studio Trolley Case).",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-008",
+  "cells": [
+   "Store case capacity notes (for example the Mobius Chrom stand bag holds 2 Harison stands, not 4) and flag items with no case (for example MTMH_120 Godox QT600 III used from retail boxes).",
+   "Could",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-KIT-009",
+  "cells": [
+   "Show on the parent item page all children, kit memberships and missing parts.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-001",
+  "cells": [
+   "Check-out: scan or select an item or kit, choose borrower (default: logged-in user), purpose or project, due date, condition at check-out and photos, then save. Status becomes Checked out.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-002",
+  "cells": [
+   "Default due dates by Type (Sheldon Cooper proposes 2 days for cameras and 7 days for tripods); defaults are editable by the Owner.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-003",
+  "cells": [
+   "At least one check-out photo is required for Camera, Lens and Drone items; optional for others (final list per section 14).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-004",
+  "cells": [
+   "Check-in: scan, the app shows the open loan, user takes photos, confirms accessories present, sets condition and adds notes. Status becomes Available, or In repair if damage is reported.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-005",
+  "cells": [
+   "If condition at check-in is worse than at check-out, the app prompts to open a repair or incident record in one tap and links it to the loan.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-006",
+  "cells": [
+   "Block a second check-out of a Single item that is already checked out; for Counted items block check-out beyond available quantity.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-007",
+  "cells": [
+   "Warn when the borrower already has overdue items; a Manager can override with a recorded reason.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-008",
+  "cells": [
+   "Allow transfer from one holder to another in one step (for example Anand to a freelancer) so the chain of custody is unbroken.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-009",
+  "cells": [
+   "Allow due date extension with a reason.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-010",
+  "cells": [
+   "Allow a Manager to record a loan for a borrower without login (for example Chiru) with optional phone and email.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-011",
+  "cells": [
+   "Allow partial check-in for Counted items and kits (for example 2 of 3 MTMH_145 cards returned) with the remainder left open or reported lost.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-012",
+  "cells": [
+   "Allow reservations for a future shoot date so two people do not plan the same item.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-013",
+  "cells": [
+   "Record check-out and check-in times automatically in IST, and the user who performed each action.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CHK-014",
+  "cells": [
+   "Allow back-dated check-in by a Manager with a reason (for example MTMH_103 returned by Chiru on 16 Oct 2026, not 15 Oct).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-001",
+  "cells": [
+   "Store every loan as its own record (one row per loan) so full history survives; the item page shows the last 20 loans and a link to all.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-002",
+  "cells": [
+   "Loan status values: Open, Returned, Overdue, Lost (see section 6).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-003",
+  "cells": [
+   "Send reminders: due soon (24 hours before), due today, overdue daily until returned.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-004",
+  "cells": [
+   "Escalate overdue loans to Anand and Naveen after 3 days overdue (per Technical input: Sheldon Cooper; Naveen to confirm).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-005",
+  "cells": [
+   "Phase 1 reminders by email; Slack alerts in Phase 2; WhatsApp in Phase 3 through Graham Bell.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-006",
+  "cells": [
+   "Borrower profile shows open loans, overdue loans, loan history and items returned damaged.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-007",
+  "cells": [
+   "Record legacy loans found in notes at migration as closed or open historical loans (for example MTMH_126 loaned to Purushotham about a year ago, open until Naveen confirms with Purushotham).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-008",
+  "cells": [
+   "Allow a Manager to mark an open loan as Lost which opens a Lost incident linked to the borrower.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-009",
+  "cells": [
+   "Record the project or shoot for each loan (free text in Phase 1; linked project code in Phase 3).",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LOAN-010",
+  "cells": [
+   "Count reminders sent per loan and show them on the loan.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-001",
+  "cells": [
+   "Keep Condition separate from Status. Condition values derived from the sheet: Good, Bad condition (Sheldon Cooper proposes Fair and New as additions; see section 14).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-002",
+  "cells": [
+   "Record maintenance events with type (Service, Repair, Cleaning, Calibration, Firmware), issue, reported by, reported date, vendor, date sent, expected back, date returned, cost, invoice, outcome.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-003",
+  "cells": [
+   "Maintenance event states: Reported, Sent for repair, In repair, Returned, Closed.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-004",
+  "cells": [
+   "While an item has an open repair, its Status is In repair and it cannot be checked out (for example MTMH_106 Sony 16-35mm G-Master).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-005",
+  "cells": [
+   "Record the cause of damage where known (for example MTMH_106: lens cells shifted inside the carrier in transit) and link to any loan.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-006",
+  "cells": [
+   "Support upkeep schedules per item or Type (for example service every 6 months for cameras, per Sheldon Cooper) with reminders to Anand.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-007",
+  "cells": [
+   "Show a timeline per item: loans, repairs, incidents, photos, audits.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-008",
+  "cells": [
+   "Convert the existing service note Serviced on 14th July into a Service event during migration, with the year flagged To verify.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-009",
+  "cells": [
+   "Report total cost of ownership per item (purchase price plus repairs).",
+   "Could",
+   "3",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-CON-010",
+  "cells": [
+   "Allow flagging replaceable defects (for example MTMH_132 to MTMH_135 NISI UV filters heavily scratched) and create a linked to-buy item in one step.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-LST-001",
+  "cells": [
+   "Distinguish Lost (confirmed lost, for example MTMH_123 Godox QR-P120 Softbox, lost during the Dasara shoot) from Missing (whereabouts unknown, being searched, for example the GoPro in Not yet sorted: Missing: to locate).",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-002",
+  "cells": [
+   "Record an incident with type (Damage, Loss, Theft, Found), description, reported by, date, last known holder, last seen location and linked loan.",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-003",
+  "cells": [
+   "Allow unknown history to be recorded explicitly (for example MTMH_111 Fotopro Predator Tripod: how and when unknown) rather than leaving fields blank.",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-004",
+  "cells": [
+   "For partial losses in Counted items, record the quantity lost and the person responsible where known (for example MTMH_145: one card lost at Shorefest by Samuel).",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-005",
+  "cells": [
+   "Missing items generate a weekly reminder to the Manager until resolved.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-006",
+  "cells": [
+   "Resolution options: Found, Written off (Owner approval), Insurance claim, Replaced (link to to-buy item).",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-007",
+  "cells": [
+   "Found flow: scanning a tagged item that is Lost or Missing prompts the user to mark it found, records where and by whom, and notifies the Manager.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-LST-008",
+  "cells": [
+   "Lost items stay in the catalog with status Lost and are excluded from available counts and asset value.",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-001",
+  "cells": [
+   "Maintain a to-buy list with item, reason, related item IDs (one or many), replaces or adds, priority, status, estimated cost, options researched, links and notes (mirrors the To buy tab).",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-002",
+  "cells": [
+   "To-buy statuses: To research, To buy (both from the sheet), then Approved, Ordered, Received, Rejected (from Technical input: Sheldon Cooper).",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-003",
+  "cells": [
+   "Priority values from the sheet: High, Medium, Low.",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-004",
+  "cells": [
+   "Replaces or adds values from the sheet: Replaces, Adds, and combined values (for example Replaces (case) and adds (missing accessories) for MTMH_116), stored as a primary value plus a note.",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-005",
+  "cells": [
+   "Approval: Managers propose, the Owner approves or rejects with a comment; the approver and time are recorded.",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-006",
+  "cells": [
+   "Record incoming orders: vendor, order number, order date, amount, GST invoice or order PDF, expected delivery, delivery date, and cancelled orders (for example MTMH_203: order KI/SO/30093 cancelled, order KI/SO/30101 confirmed).",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-007",
+  "cells": [
+   "On Received, create the new item records in one step with new MTMH IDs, link them to the order and the to-buy line, and prompt for stock photo and QR label.",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-008",
+  "cells": [
+   "Show to-buy lines on the related item page (for example the Pelican 1510 hard case line on MTMH_106).",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-009",
+  "cells": [
+   "Support verify before buy lines (for example MTMH_197 BC-QZ1 charger: confirm count with Anand first, then buy up to 3).",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-BUY-010",
+  "cells": [
+   "Store multiple researched options per line with vendor, price and stock note (for example DJI Air 2S battery: Pooja Electronics, Flyworldgadget, Design Info).",
+   "Could",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-PHO-001",
+  "cells": [
+   "Each item has two primary photo fields: Stock image (clean product shot, from the sheet Links column) and Latest photo (most recent real photo, from the Updated links column).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-002",
+  "cells": [
+   "Keep photo history: operational photos are stored with kind (Stock, Latest, Check-out, Check-in, Damage, Invoice), taken by and taken at.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-003",
+  "cells": [
+   "Capture photos from the phone camera inside the app, compress on the device (about 1600 px longest side) and upload in the background.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-004",
+  "cells": [
+   "Store photo files in Madtown-owned Google Drive, one folder per item; store only the Drive file ID and a thumbnail reference in the database (Technical input: Sheldon Cooper).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-005",
+  "cells": [
+   "A new check-in photo can be promoted to Latest photo; the previous Latest photo stays in history.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-006",
+  "cells": [
+   "Flag items with missing or invalid photos (for example MTMH_187 has neither photo; Updated links holds the text lost or Need replacement on 11 rows).",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-007",
+  "cells": [
+   "Handle stock links that point to a Drive folder instead of a file (MTMH_101, 102, 103, 110, 112, 119) by letting a Manager pick the stock image from the folder.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-PHO-008",
+  "cells": [
+   "Use a storage adapter so Drive can be replaced by another store (Supabase Storage or Cloudflare R2) without data changes.",
+   "Should",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-001",
+  "cells": [
+   "Record an audit log entry for every create, update, delete, check-out, check-in, import and sync: who, when, action, record, before and after values, source (App, Import, Sync). The log is append-only.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-002",
+  "cells": [
+   "Show the audit log per item and as a filtered global view (Owner only), exportable to CSV.",
+   "Must",
+   "1",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-003",
+  "cells": [
+   "Run a walkthrough (physical audit) session: choose scope (all, a location, a Type, a holder), scan each item, record Found, Not found, Wrong location, Condition changed, with an optional photo.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-004",
+  "cells": [
+   "For Counted items, the walkthrough records the counted quantity and flags differences from expected stock (for example MTMH_126 stock 4 versus actual count).",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-005",
+  "cells": [
+   "At the end of a walkthrough, show a variance report and let a Manager apply corrections, each logged.",
+   "Must",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-006",
+  "cells": [
+   "Items not found in a walkthrough can be moved to Missing in bulk with one confirmation.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-007",
+  "cells": [
+   "Support quick-note capture during a walkthrough (text note per item), since current updates often come from voice notes.",
+   "Could",
+   "3",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-AUD-008",
+  "cells": [
+   "Show last audited date per item and a list of items not audited in 90 days.",
+   "Should",
+   "2",
+   "Anand"
+  ]
+ },
+ {
+  "id": "FR-RPT-001",
+  "cells": [
+   "Dashboard: items out now, overdue, in repair, lost, missing, bad condition, due for service, to-buy waiting for approval.",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-002",
+  "cells": [
+   "Inventory list report by Type, status, condition, holder and owner, exportable to CSV.",
+   "Must",
+   "1",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-003",
+  "cells": [
+   "Loans report by person and by project for a date range.",
+   "Must",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-004",
+  "cells": [
+   "Repairs report: frequency and cost per item and per vendor.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-005",
+  "cells": [
+   "Utilisation: days out per item in the last 90 days; items never used.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-006",
+  "cells": [
+   "Asset value: Madtown-owned items at purchase price; depreciation in Phase 3.",
+   "Could",
+   "3",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-007",
+  "cells": [
+   "Shoot pick list: printable list of items and kit contents reserved for a shoot.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-008",
+  "cells": [
+   "Weekly summary email to Naveen with the dashboard numbers and overdue list.",
+   "Should",
+   "2",
+   "Naveen Pinapatruni"
+  ]
+ },
+ {
+  "id": "FR-RPT-009",
+  "cells": [
+   "Google Sheets mirror: nightly one-way export to a read-only sheet in the current column layout.",
+   "Must",
+   "1 Calibration, Firmware",
+   "Naveen Pinapatruni names have them)."
+  ]
+ },
+ {
+  "id": "SCR-01",
+  "cells": [
+   "Login",
+   "Google sign-in restricted to @madtown.in",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-02",
+  "cells": [
+   "Home dashboard",
+   "Counts and lists: out now, overdue, in repair, lost, missing, bad condition, due for service, to-buy awaiting approval; large Scan button",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-03",
+  "cells": [
+   "Scanner",
+   "Camera view that reads QR labels and opens the item or kit page; manual ID entry fallback",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-04",
+  "cells": [
+   "Item list",
+   "Search box, filters (Type, status, condition, holder, owner, to verify), saved views, thumbnails",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-05",
+  "cells": [
+   "Item detail",
+   "Stock image and latest photo, ID, name, model, type, status, condition, owner, holder, parent and children, kit membership, missing parts, primary action button, tabs for loans, repairs, incidents, photos and audit history",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-06",
+  "cells": [
+   "Item add and edit",
+   "All item fields with validation; To verify flag; Manager and Owner only",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-07",
+  "cells": [
+   "Check-out",
+   "Borrower, purpose, due date, condition, photos, quantity for Counted items",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-08",
+  "cells": [
+   "Check-in",
+   "Open loan, photos, accessory checklist, condition, notes, one-tap repair or incident",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-09",
+  "cells": [
+   "Transfer and extend",
+   "Change holder or due date with reason",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-10",
+  "cells": [
+   "People list and borrower profile",
+   "Open and past loans, overdue items, damaged returns, contact details",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-11",
+  "cells": [
+   "Print labels",
+   "Select items or kits, preview and print QR label sheet",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-12",
+  "cells": [
+   "Audit log",
+   "Filtered global change history with CSV export; Owner only",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-13",
+  "cells": [
+   "Import review",
+   "Results of the sheet import with warnings per row; Owner and Siddharth",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-14",
+  "cells": [
+   "Kits",
+   "Kit list, kit detail with contents and required flags",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-15",
+  "cells": [
+   "Repairs",
+   "Open and closed maintenance events, schedule due list",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-16",
+  "cells": [
+   "Lost and found",
+   "Lost and Missing items, incidents, resolution actions",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-17",
+  "cells": [
+   "To-buy",
+   "Wishlist with status, priority, approval actions, researched options",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-18",
+  "cells": [
+   "Orders",
+   "Incoming orders, delivery status, receive and create items",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-19",
+  "cells": [
+   "Walkthrough",
+   "Start session, scan items, counted quantity, variance report, apply corrections",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-20",
+  "cells": [
+   "Reports",
+   "Loans, repairs, utilisation, asset value, pick lists, exports",
+   "2"
+  ]
+ },
+ {
+  "id": "SCR-21",
+  "cells": [
+   "Unsorted items",
+   "Rows from Not yet sorted with question, who can answer, status, convert to item",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-22",
+  "cells": [
+   "Settings",
+   "Types, subtypes, default loan periods, reminder rules, mandatory photo rules, users and roles; Owner only",
+   "1"
+  ]
+ },
+ {
+  "id": "SCR-23",
+  "cells": [
+   "Reservations calendar",
+   "Bookings per item and shoot",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-001",
+  "cells": [
+   "Loan due soon",
+   "Borrower (if contact stored) and the Manager who issued it",
+   "Email",
+   "24 hours before due",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-002",
+  "cells": [
+   "Loan due today",
+   "Borrower and Manager",
+   "Email",
+   "Morning of due date, 9:00 AM IST",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-003",
+  "cells": [
+   "Loan overdue",
+   "Borrower and Manager",
+   "Email",
+   "Daily until returned",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-004",
+  "cells": [
+   "Overdue escalation",
+   "Anand and Naveen",
+   "Email; Slack in Phase 2",
+   "After 3 days overdue",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-005",
+  "cells": [
+   "Item checked in damaged",
+   "Managers",
+   "Email; Slack in Phase 2",
+   "Immediate",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-006",
+  "cells": [
+   "Item reported lost or missing",
+   "Managers and Naveen",
+   "Email; Slack in Phase 2",
+   "Immediate",
+   "1"
+  ]
+ },
+ {
+  "id": "NTF-007",
+  "cells": [
+   "Missing item still unresolved",
+   "Managers",
+   "Email",
+   "Weekly",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-008",
+  "cells": [
+   "Repair expected back date passed",
+   "Anand",
+   "Email",
+   "Day after expected date",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-009",
+  "cells": [
+   "Service or upkeep due",
+   "Anand",
+   "Email",
+   "7 days before due",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-010",
+  "cells": [
+   "To-buy line waiting for approval",
+   "Naveen",
+   "Email; Slack in Phase 2",
+   "Immediate and in weekly summary",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-011",
+  "cells": [
+   "Order delivered or overdue for delivery",
+   "Proposer and Anand",
+   "Email",
+   "On change; day after expected",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-012",
+  "cells": [
+   "Weekly summary",
+   "Naveen",
+   "Email",
+   "Monday 9:00 AM IST (to confirm)",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-013",
+  "cells": [
+   "Check-out and check-in feed",
+   "Inventory Slack channel",
+   "Slack",
+   "Immediate",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-014",
+  "cells": [
+   "Walkthrough variance",
+   "Managers and Naveen",
+   "Email",
+   "On session close",
+   "2"
+  ]
+ },
+ {
+  "id": "NTF-015",
+  "cells": [
+   "Reminders to freelancers by WhatsApp optional link unfurl for item pages",
+   "Borrower",
+   "WhatsApp through Graham Bell",
+   "As NTF-001 to NTF-003",
+   "3"
+  ]
+ },
+ {
+  "id": "NFR-001",
+  "cells": [
+   "Performance",
+   "Item search and list load in under 1 second on 4G for up to a few thousand items; scan to item page in under 2 seconds; under 20 concurrent users.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-002",
+  "cells": [
+   "Performance",
+   "Photo upload runs in the background and does not block the check-out or check-in save.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-003",
+  "cells": [
+   "Security",
+   "Google login restricted to the madtown.in domain; optional two-factor authentication.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-004",
+  "cells": [
+   "Security",
+   "Roles enforced at database level as well as in the screens; cost fields hidden from Team members at API level, not only in the screen.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-005",
+  "cells": [
+   "Security",
+   "HTTPS only; secrets in environment variables, never in code or the repository.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-006",
+  "cells": [
+   "Security",
+   "Same-day offboarding: removing a user revokes access immediately; offboarding is a documented step.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-007",
+  "cells": [
+   "Ownership",
+   "Code repository, hosting, domain, database, email sender and Drive folders are owned by Madtown accounts (admin@madto wn.in or naveen@madto wn.in as owner), with Siddharth as collaborator.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-008",
+  "cells": [
+   "Backup",
+   "Automated daily database backups with 7 to 30 days retention.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-009",
+  "cells": [
+   "Backup",
+   "Weekly export (CSV plus JSON) to a Madtown Drive folder; the Sheets mirror is a third readable copy.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-010",
+  "cells": [
+   "Backup",
+   "A restore is tested before go-live and the steps are written down.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-011",
+  "cells": [
+   "Mobile use",
+   "Mobile-first, installable PWA on iPhone and Android; large buttons; one-handed use; check-out in three taps after scanning.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-012",
+  "cells": [
+   "Mobile use",
+   "Works on desktop browsers for reports, settings and bulk edits.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-013",
+  "cells": [
+   "Offline tolerance",
+   "Phase 1: item lookup and scanning work from a cached copy when signal is poor; actions that need a connection show a clear message when offline.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-014",
+  "cells": [
+   "Offline tolerance",
+   "Phase 2: check-out and check-in actions queue locally (service worker plus IndexedDB) and sync when online; server time wins; a double check-out created offline is flagged to a Manager.",
+   "Must",
+   "2"
+  ]
+ },
+ {
+  "id": "NFR-015",
+  "cells": [
+   "Audit trail",
+   "Every change is written to the append-only audit log with user, time, before and after values and source; no role can edit or delete it.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-016",
+  "cells": [
+   "Audit trail",
+   "Imported records are tagged source Import; mirror writes are tagged Sync.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-017",
+  "cells": [
+   "Photo storage",
+   "Photos compressed on device to about 1600 px longest side (JPEG or WebP); thumbnails generated for lists; originals not stored in the database.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-018",
+  "cells": [
+   "Photo storage",
+   "Photos stored in Madtown-owned Google Drive, one folder per item, with a storage adapter allowing Supabase Storage or Cloudflare R2 later.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-019",
+  "cells": [
+   "Photo storage",
+   "Storage growth reviewed yearly.",
+   "Could",
+   "3"
+  ]
+ },
+ {
+  "id": "NFR-020",
+  "cells": [
+   "Time and locale",
+   "All times shown in IST; dates in the format 16 Oct 2026; currency in Rs; English with plain labels.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-021",
+  "cells": [
+   "Maintainability",
+   "README with set-up steps, ER diagram, written handover notes and a staging copy for testing changes.",
+   "Must",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-022",
+  "cells": [
+   "Availability",
+   "Target 99 percent monthly availability during 8:00 AM to 10:00 PM IST; planned maintenance outside these hours.",
+   "Should",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-023",
+  "cells": [
+   "Cost",
+   "Running cost target about USD 25 to 50 (Rs 2,100 to 4,200) per month including domain and email sending; label printer one-off Rs 3,000 to 5,000 (Sheldon Cooper estimates; Naveen to set budget).",
+   "Should",
+   "1"
+  ]
+ },
+ {
+  "id": "NFR-024",
+  "cells": [
+   "Accessibility",
+   "Readable contrast in sunlight at shoot locations; text size at least 16 px on mobile. Comma-separated values (for example Madtown, Kittu) become item_holdings rows with quantities to confirm. Lost becomes status Lost. Blank becomes to_verify.",
+   "Should",
+   "1"
+  ]
+ },
+ {
+  "id": "MIG-001",
+  "cells": [
+   "Trim leading and trailing spaces in every cell before import."
+  ]
+ },
+ {
+  "id": "MIG-002",
+  "cells": [
+   "Never renumber an item. Gaps, if they occur later, stay as gaps."
+  ]
+ },
+ {
+  "id": "MIG-003",
+  "cells": [
+   "Items held by a person with no loan record (for example MTMH_148 K&F Camera Sling Bag with Chiru, MTMH_113 Powerpak 5 in 1 Reflector with Kittu) import as an open legacy loan with due date blank and flag To verify, unless Naveen confirms the person is the normal custodian."
+  ]
+ },
+ {
+  "id": "MIG-004",
+  "cells": [
+   "Notes that say Belongs to Anand, or Anand's Card, set owner to Anand (MTMH_115, MTMH_187) after Naveen confirms."
+  ]
+ },
+ {
+  "id": "MIG-005",
+  "cells": [
+   "Notes that say Serviced on 14th July create a Service event dated 14 July, year To verify."
+  ]
+ },
+ {
+  "id": "MIG-006",
+  "cells": [
+   "Notes that describe a missing accessory create a Missing part record on the item (MTMH_109, MTMH_116, MTMH_122, MTMH_150, MTMH_156, MTMH_167)."
+  ]
+ },
+ {
+  "id": "MIG-007",
+  "cells": [
+   "Notes that describe a loss create an incident (MTMH_111, MTMH_123, MTMH_139, MTMH_159, MTMH_162; partial: MTMH_145, MTMH_138 batteries)."
+  ]
+ },
+ {
+  "id": "MIG-008",
+  "cells": [
+   "Notes that describe a loan create a legacy loan (MTMH_103 Chiru, returned; MTMH_126 Purushotham, open; MTMH_130 Kittu, open; MTMH_138 unknown borrower, returned damaged)."
+  ]
+ },
+ {
+  "id": "MIG-009",
+  "cells": [
+   "Rows with Condition Good but Updated links lost (MTMH_114 Powerpak 100x170 cms Reflector, holder Kittu) are flagged for review, not auto-classified."
+  ]
+ },
+ {
+  "id": "MIG-010",
+  "cells": [
+   "Rows with blank Condition and Posession (MTMH_196 to MTMH_203) import with to_verify true."
+  ]
+ },
+ {
+  "id": "MIG-011",
+  "cells": [
+   "Each To buy row imports as a wishlist item with status and priority as given; related item IDs are parsed into links (text such as camera and lens items MTMH_101 to 108 is expanded with confirmation)."
+  ]
+ },
+ {
+  "id": "MIG-012",
+  "cells": [
+   "Each Not yet sorted row imports into unsorted_items with its question, who can answer and status; it is converted to an item only after a Manager fills the required fields. The GoPro becomes an item with status Missing once Naveen supplies basic details."
+  ]
+ },
+ {
+  "id": "MIG-013",
+  "cells": [
+   "The possible duplicate SanDisk Extreme 128GB (Not yet sorted) against MTMH_187 is held for Anand to verify before a new item is created."
+  ]
+ },
+ {
+  "id": "MIG-014",
+  "cells": [
+   "The original sheet row and raw values are stored on each imported record (legacy_raw)."
+  ]
+ },
+ {
+  "id": "MIG-015",
+  "cells": [
+   "The import is repeatable on staging until sign-off; the production import runs once."
+  ]
+ },
+ {
+  "id": "MIG-016",
+  "cells": [
+   "Model numbers proposed in the working file model_numbers_proposed.csv on the Madtown box (38 rows) are cross-checked against the sheet before import; the sheet value wins where they differ."
+  ]
+ },
+ {
+  "id": "AC-CAT-01",
+  "cells": [
+   "Item catalog",
+   "After import, the app shows 103 items with IDs MTMH_101 to MTMH_203, and MTMH_145 is stored without a trailing space.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CAT-02",
+  "cells": [
+   "Item catalog",
+   "Creating a new item assigns MTMH_204; retiring it and creating another assigns MTMH_205.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CAT-03",
+  "cells": [
+   "Item catalog",
+   "Searching FX3 returns MTMH_101 and its accessories MTMH_163 to MTMH_166 within 1 second.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CAT-04",
+  "cells": [
+   "Item catalog",
+   "MTMH_115 shows owner Anand and is excluded from Madtown asset counts.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CAT-05",
+  "cells": [
+   "Item catalog",
+   "MTMH_202 appears in the To verify list with reason model TBD.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-QR-01",
+  "cells": [
+   "QR labels",
+   "Printing labels for MTMH_101 to MTMH_110 produces a sheet of 10 QR codes with ID and name.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-QR-02",
+  "cells": [
+   "QR labels",
+   "Scanning the MTMH_104 label on an iPhone and on an Android phone opens its item page in under 2 seconds.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-KIT-01",
+  "cells": [
+   "Kits and accessories",
+   "A kit built from MTMH_182, MTMH_183 and MTMH_184 checks out as one unit and all three items show Checked out.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-KIT-02",
+  "cells": [
+   "Kits and accessories",
+   "Checking in that kit without MTMH_183 is blocked as complete and offers to record a missing part.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-KIT-03",
+  "cells": [
+   "Kits and accessories",
+   "MTMH_109 shows a missing part (charging cable) linked to the to-buy line DJI Mic 2 charging cable.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CHK-01",
+  "cells": [
+   "Check-out and check-in",
+   "Checking out MTMH_103 without a photo is blocked; with a photo it saves and status becomes Checked out.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CHK-02",
+  "cells": [
+   "Check-out and check-in",
+   "A second check-out of MTMH_103 while the first is open is blocked.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CHK-03",
+  "cells": [
+   "Check-out and check-in",
+   "Checking out 5 of MTMH_141 (stock 6) succeeds; checking out 2 more is blocked.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CHK-04",
+  "cells": [
+   "Check-out and check-in",
+   "Check-in of MTMH_103 with condition Bad condition prompts for and creates a repair record linked to the loan.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CHK-05",
+  "cells": [
+   "Check-out and check-in",
+   "A transfer of a loan from Anand to Chiru keeps one chain of custody visible on the item.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LOAN-01",
+  "cells": [
+   "Loans and reminders",
+   "A loan due tomorrow sends the due-soon email 24 hours before; an overdue loan sends a daily email and escalates to Anand and Naveen on day 3.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LOAN-02",
+  "cells": [
+   "Loans and reminders",
+   "The legacy loan of MTMH_126 to Purushotham appears as open on the Purushotham profile after import.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LOAN-03",
+  "cells": [
+   "Loans and reminders",
+   "The Chiru profile shows the returned MTMH_103 loan and the MTMH_148 holding.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CON-01",
+  "cells": [
+   "Condition and repair",
+   "MTMH_106 imports with status In repair and cannot be checked out.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-CON-02",
+  "cells": [
+   "Condition and repair",
+   "A repair moved through Reported, Sent for repair, In repair, Returned and Closed shows each step with date and user in the item timeline.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-CON-03",
+  "cells": [
+   "Condition and repair",
+   "Items MTMH_101, 102, 103, 105, 107 and 108 each show a Service event dated 14 July flagged year To verify.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LST-01",
+  "cells": [
+   "Lost and found",
+   "MTMH_111, MTMH_123, MTMH_139, MTMH_159 and MTMH_162 import with status Lost and are excluded from available counts.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LST-02",
+  "cells": [
+   "Lost and found",
+   "MTMH_145 shows stock 3 with 1 lost, last seen Shorefest, responsible Samuel.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-LST-03",
+  "cells": [
+   "Lost and found",
+   "Scanning a Lost item offers Mark as found; confirming notifies Managers and logs the change.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-BUY-01",
+  "cells": [
+   "To-buy and procurement",
+   "All 25 To buy lines import with their priority and status; the hard camera and lens case line shows on MTMH_106.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-BUY-02",
+  "cells": [
+   "To-buy and procurement",
+   "A Manager proposes a line; only Naveen can approve it; the approval records user and time.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-BUY-03",
+  "cells": [
+   "To-buy and procurement",
+   "Receiving an order creates new items with the next MTMH IDs, linked to the order and the to-buy line.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-PHO-01",
+  "cells": [
+   "Photos",
+   "MTMH_104 shows both stock image and latest photo from the sheet links.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-PHO-02",
+  "cells": [
+   "Photos",
+   "A check-in photo can be promoted to latest photo; the previous one remains in history.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-PHO-03",
+  "cells": [
+   "Photos",
+   "Items with no photo (for example MTMH_187) appear in the Missing photos view.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-AUD-01",
+  "cells": [
+   "Audit and walkthrough",
+   "Editing the name of MTMH_112 records user, time, before and after in the audit log; no role can edit that entry.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-AUD-02",
+  "cells": [
+   "Audit and walkthrough",
+   "A walkthrough over Type Stand records a counted quantity for MTMH_126 and shows the variance against stock 4.",
+   "2"
+  ]
+ },
+ {
+  "id": "AC-RPT-01",
+  "cells": [
+   "Reports",
+   "The dashboard counts match the item list filters for out now, overdue, in repair, lost and missing.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-RPT-02",
+  "cells": [
+   "Reports",
+   "The nightly mirror sheet reproduces the current column layout with current values for all items.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-RPT-03",
+  "cells": [
+   "Reports",
+   "The inventory report exports to CSV with all active items.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-NFR-01",
+  "cells": [
+   "Non-functional",
+   "A Google account outside madtown.in cannot sign in.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-NFR-02",
+  "cells": [
+   "Non-functional",
+   "A Team member cannot see purchase price through the screen or the API.",
+   "1"
+  ]
+ },
+ {
+  "id": "AC-NFR-03",
+  "cells": [
+   "Non-functional",
+   "A restore from the daily backup to staging succeeds and is documented before go-live.",
+   "1"
+  ]
+ },
+ {
+  "id": "OQ-N-01",
+  "cells": [
+   "Are Anand and Kittu both Managers? Are Kittu and Nagi staff or freelancers?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-02",
+  "cells": [
+   "Is a fast no-code MVP wanted first (Option B), or go straight to Option A? (Sheldon Q2)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-03",
+  "cells": [
+   "Which categories get one tag per unit, and which are tracked by quantity only (for example batteries, clamps, cards, stands)? (Sheldon Q3)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-04",
+  "cells": [
+   "Kits: one record per bundle with a contents list, or each part its own item? Which bundles exist (gimbal set, GoPro bundle, mic kit, light kits, Godox SA set)? (Sheldon Q4; Not yet sorted: gimbal accessories)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-05",
+  "cells": [
+   "How many people will borrow items, and are freelancers such as Chiru given logins or recorded by a Manager? (Sheldon Q5)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-06",
+  "cells": [
+   "Default loan periods per Type, and the overdue chase: who is chased, how often and where (email, Slack, WhatsApp)? (Sheldon Q6)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-07",
+  "cells": [
+   "Are purchase prices and values visible to Anand and Kittu and hidden from the team? (Sheldon Q7)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-08",
+  "cells": [
+   "Which items need mandatory photos at check-out and check-in? (Sheldon Q8)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-09",
+  "cells": [
+   "Where does gear live (office, home, shoot sites), and do multiple locations matter? (Sheldon Q9)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-10",
+  "cells": [
+   "Are items insured, and should the app store policy numbers and claim records? (Sheldon Q10)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-11",
+  "cells": [
+   "Is the existing Drive folder structure kept for photos? (Sheldon Q12)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-12",
+  "cells": [
+   "Label every small accessory, or tag only the pouch or kit? (Sheldon Q13)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-13",
+  "cells": [
+   "What is the target go-live date, and which upcoming shoot is the pilot? (Sheldon Q14)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-14",
+  "cells": [
+   "Keep Not yet sorted and To buy as imports? What is done about the missing GoPro? (Sheldon Q15)",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-15",
+  "cells": [
+   "What is the budget ceiling for the build and for monthly running cost? (Sheldon Q16)",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-16",
+  "cells": [
+   "Condition values: keep Good and Bad condition only (as in the sheet), or add Fair and New as Sheldon Cooper proposes?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-17",
+  "cells": [
+   "Type list: keep the sheet Types and add a Subtype for Accessory, or adopt the shorter list proposed by Sheldon Cooper (camera, lens, audio, light, gimbal, drone, bag, cable, other)?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-18",
+  "cells": [
+   "Does Madtown in the Posession column mean the office store, and which office (the teleprompter order shipped to the Rushikonda office)?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-19",
+  "cells": [
+   "For items held by Kittu or Anand with no loan (for example MTMH_113, MTMH_118, MTMH_142), are they custodians (no due date) or borrowers?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-20",
+  "cells": [
+   "Confirm ownership: MTMH_115 Godox V1S Flash and MTMH_187 SanDisk Extreme 128GB belong to Anand. Are there other personally owned items?",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-21",
+  "cells": [
+   "What is the year of the 14 July service on the six camera and lens items?",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-22",
+  "cells": [
+   "MTMH_114 Powerpak 100x170 cms Reflector: condition Good and holder Kittu, but latest photo says lost. Which is correct?",
+   "Naveen with Anand"
+  ]
+ },
+ {
+  "id": "OQ-N-23",
+  "cells": [
+   "MTMH_126: what is the actual count of Harison Pro Tower Stands after the call with Purushotham?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-24",
+  "cells": [
+   "Should Alfred Pennyworth (inventory manager bot) get API or read access to the app, and with what role?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-N-25",
+  "cells": [
+   "Who approves write-offs for lost items, and is there a value threshold?",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "OQ-S-01",
+  "cells": [
+   "Which stack do you already run for Acom and McGorganic, and can the inventory app share hosting and accounts with them or must it stand alone? (Sheldon Q1)",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-02",
+  "cells": [
+   "Do you accept Option A (Supabase plus a Next.js or SvelteKit PWA), or do you propose Option C on your existing stack? Please give effort and running cost.",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-03",
+  "cells": [
+   "Who owns the accounts, domain (for example a subdomain of madtown.in) and code repository? Recommendation: Madtown owns all of them, with you as collaborator. (Sheldon Q11)",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-04",
+  "cells": [
+   "Can Google Drive be used reliably for photo storage from the app (service account or OAuth, quotas), or do you prefer Supabase Storage or Cloudflare R2 behind an adapter?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-05",
+  "cells": [
+   "What unit suffix scheme do you propose when a Counted item is split into tagged units (for example MTMH_141 into six batteries)?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-06",
+  "cells": [
+   "How will you implement the Sheets mirror (nightly job or on change), and how will you prevent edits to the mirror?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-07",
+  "cells": [
+   "Which email sending service will you use for reminders from inventory@madtown.in, and what does it cost?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-08",
+  "cells": [
+   "How much of the offline queue can be delivered in Phase 1 rather than Phase 2?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-09",
+  "cells": [
+   "Do you confirm the Phase 1 estimate of 3 to 4 weeks, and what would you cut first if it runs late?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-10",
+  "cells": [
+   "How will row-level security be tested for the cost-hiding rule?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-11",
+  "cells": [
+   "What is your rollback plan for each phase?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "OQ-S-12",
+  "cells": [
+   "What staging environment and test data will you use, and who besides Naveen gets access?",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "R-01",
+  "cells": [
+   "Scope growth",
+   "Keep the MVP to check-out, check-in and photos plus essentials; changes need Naveen's approval",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "R-02",
+  "cells": [
+   "Incomplete data at import",
+   "Clean the sheet first (Phase 0); dry-run import report",
+   "Naveen and Anand"
+  ]
+ },
+ {
+  "id": "R-03",
+  "cells": [
+   "People skip the scan at busy shoots",
+   "Fast flow (three taps); Managers enforce for the first month",
+   "Anand"
+  ]
+ },
+ {
+  "id": "R-04",
+  "cells": [
+   "Lock-in to one developer",
+   "Madtown owns accounts and code; documentation required",
+   "Naveen"
+  ]
+ },
+ {
+  "id": "R-05",
+  "cells": [
+   "Photo storage growth",
+   "Compression, thumbnails, yearly review",
+   "Siddharth"
+  ]
+ },
+ {
+  "id": "R-06",
+  "cells": [
+   "Counted items hide losses (added from the sheet review)",
+   "Per-holder quantities and walkthrough counts",
+   "Anand"
+  ]
+ },
+ {
+  "id": "R-07",
+  "cells": [
+   "Personally owned gear counted as Madtown assets (added from the sheet review)",
+   "Owner field required; confirm at import MTMH_110, MTMH_117, MTMH_145)",
+   "Naveen"
+  ]
+ }
+]

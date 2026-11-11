@@ -1,0 +1,21 @@
+{
+  "_comment": "Proposed mapping rules derived ONLY from statements in the spec (section 11.3 Step 3: decisions recorded as mapping rules). Every rule stays to-verify until Naveen/Anand confirm in Import review.",
+  "MTMH_115": { "owner": "Anand", "owner_confirmed": true, "source": "Note: 'Belongs to Anand, not Madtown (per Naveen, 16 Oct 2026)'; AC-CAT-04" },
+  "MTMH_187": { "owner": "Anand", "owner_confirmed": false, "source": "Note: 'Anand's Card' while Posession says Madtown (C.1, MIG-004 'after Naveen confirms')" },
+  "MTMH_163": { "parent": "MTMH_101", "source": "FR-KIT-001, 4.2: SmallRig cage for the FX3" },
+  "MTMH_164": { "parent": "MTMH_101", "source": "4.2: MTMH_163 to MTMH_166 are FX3 rig parts" },
+  "MTMH_165": { "parent": "MTMH_101", "source": "4.2" },
+  "MTMH_166": { "parent": "MTMH_101", "source": "4.2" },
+  "MTMH_183": { "parent": "MTMH_182", "source": "FR-KIT-002: DJI RS4 Pro set" },
+  "MTMH_184": { "parent": "MTMH_182", "source": "FR-KIT-002" },
+  "MTMH_159": { "parent": "MTMH_158", "source": "FR-KIT-001 '158 relates to 159'; direction of the link to confirm" },
+  "MTMH_119": { "detached": [{ "description": "Battery and charger", "holder": "Anand", "reason": "Timely charging" }], "primary_holder": "Madtown",
+                "source": "FR-KIT-006 example; Posession 'Madtown, Anand' on a Single item" },
+  "MTMH_145": { "holdings": [{ "holder": "Nagi", "qty": 1 }, { "holder": "Kittu", "qty": 1 }, { "status": "Lost", "qty": 1 }],
+                "source": "Notes: one of 3 cards lost at Shorefest (AC-LST-02)" },
+  "MTMH_126": { "holdings": [{ "holder": "Madtown", "qty": 1 }, { "holder": "Kittu", "qty": 1 }, { "holder": "Purushotham", "qty": 1, "legacy_loan": true }, { "status": "Missing", "qty": 1 }],
+                "source": "Notes: stock 4, one missing, one loaned to Purushotham about a year ago (FR-LOAN-007, OQ-N-23)" },
+  "MTMH_106": { "custodian": true, "source": "Repairing with Posession Anand; whether Anand holds it or a vendor is unclear (C.1, D-32)" },
+  "MTMH_138": { "legacy_loan": { "borrower": "Unknown borrower (legacy)", "status": "Returned", "condition_in": "Bad condition" },
+                "source": "MIG-008: unknown borrower, returned damaged" }
+}
