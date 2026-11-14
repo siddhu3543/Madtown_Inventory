@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { AlertCircle, CloudOff, LogOut, ShieldAlert } from "lucide-react";
 import { PhotoCapture } from "./PhotoCapture";
 
 type State = { ok?: boolean; error?: string; code?: string } | null;
@@ -21,8 +22,8 @@ type Props = {
 function Btn() {
   const { pending } = useFormStatus();
   return (
-    <button className="btn btn-primary w-full text-lg" style={{ minHeight: 60 }} disabled={pending} data-testid="checkout-submit">
-      {pending ? "Saving…" : "Check out"}
+    <button className="btn btn-primary w-full text-base sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} disabled={pending} data-testid="checkout-submit">
+      <LogOut size={18} aria-hidden /> {pending ? "Saving…" : "Check out"}
     </button>
   );
 }
@@ -45,7 +46,7 @@ export function CheckoutForm(p: Props) {
     setQueuedMsg("You are offline. The check-out is queued and NOT confirmed until it syncs. Do not hand over gear on the strength of this alone.");
   }
   return (
-    <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-4" data-testid="checkout-form">
+    <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-5" data-testid="checkout-form">
       {p.target.item_id && <input type="hidden" name="item_id" value={p.target.item_id} />}
       {p.target.kit_id && <input type="hidden" name="kit_id" value={p.target.kit_id} />}
       <label className="field">
@@ -104,8 +105,10 @@ export function CheckoutForm(p: Props) {
         <PhotoCapture key={pi.id} itemId={pi.id} kind="Check-out" required={p.target.photoRequired} label={`Check-out photo of ${pi.id} (${pi.type})`} />
       ))}
       {p.canOverride && needsOverride && (
-        <fieldset className="card border-[var(--color-warn)] p-3">
-          <legend className="font-semibold">Manager override</legend>
+        <fieldset className="alert alert-warn flex-col !items-stretch gap-3">
+          <legend className="flex items-center gap-2 px-1 font-semibold">
+            <ShieldAlert size={16} aria-hidden /> Manager override
+          </legend>
           {state?.code === "ALREADY_OUT" && (
             <label className="flex items-center gap-2">
               <input type="checkbox" name="override_double" /> Close the previous open loan (item is physically here)
@@ -118,21 +121,25 @@ export function CheckoutForm(p: Props) {
         </fieldset>
       )}
       {state?.code === "RESERVED_CONFLICT" && (
-        <label className="flex items-center gap-2 font-semibold">
+        <label className="alert alert-warn items-center font-semibold">
           <input type="checkbox" name="ack_reservation" /> I know it is reserved by someone else; check out anyway
         </label>
       )}
       {state?.error && (
-        <p role="alert" data-testid="form-error" className="rounded-md border-2 border-[var(--color-bad)] p-3 font-semibold text-[var(--color-bad)]">
-          {state.error}
+        <p role="alert" data-testid="form-error" className="alert alert-bad font-medium">
+          <AlertCircle size={18} aria-hidden />
+          <span className="min-w-0">{state.error}</span>
         </p>
       )}
       {queuedMsg && (
-        <p role="status" data-testid="queued" className="rounded-md border-2 border-[var(--color-warn)] p-3 font-semibold">
-          {queuedMsg}
+        <p role="status" data-testid="queued" className="alert alert-warn font-medium">
+          <CloudOff size={18} aria-hidden />
+          <span className="min-w-0">{queuedMsg}</span>
         </p>
       )}
-      <Btn />
+      <div className="sticky-actions">
+        <Btn />
+      </div>
     </form>
   );
 }

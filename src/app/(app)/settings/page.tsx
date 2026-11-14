@@ -35,13 +35,17 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           <table className="tbl text-sm">
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Loan days</th>
-                <th>Confirmed</th>
-                <th>Photo out</th>
-                <th>Photo in</th>
-                <th>Service every (days)</th>
-                <th />
+                <th colSpan={7}>
+                  <div className="grid grid-cols-[8rem_5rem_5rem_5rem_5rem_6rem_auto] items-center gap-2">
+                    <span>Type</span>
+                    <span>Loan days</span>
+                    <span className="text-center">Confirmed</span>
+                    <span className="text-center">Photo out</span>
+                    <span className="text-center">Photo in</span>
+                    <span>Service (days)</span>
+                    <span />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -54,11 +58,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
                         <input type="hidden" name="name" value={t.name} />
                         <b>{t.name}</b>
                         <input name="default_loan_days" type="number" min={1} className="input" defaultValue={t.default_loan_days ?? ""} />
-                        <input type="checkbox" name="confirmed" defaultChecked={t.loan_days_confirmed} />
-                        <input type="checkbox" name="out_photo" defaultChecked={t.checkout_photo_required} />
-                        <input type="checkbox" name="in_photo" defaultChecked={t.checkin_photo_required} />
+                        <input type="checkbox" name="confirmed" defaultChecked={t.loan_days_confirmed} className="justify-self-center" />
+                        <input type="checkbox" name="out_photo" defaultChecked={t.checkout_photo_required} className="justify-self-center" />
+                        <input type="checkbox" name="in_photo" defaultChecked={t.checkin_photo_required} className="justify-self-center" />
                         <input name="service_interval_days" type="number" className="input" defaultValue={t.service_interval_days ?? ""} />
-                        <Submit className="btn btn-sm btn-secondary">Save</Submit>
+                        <Submit className="btn btn-sm btn-secondary justify-self-start">Save</Submit>
                       </ActionForm>
                     </td>
                   </tr>

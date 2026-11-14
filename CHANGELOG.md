@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — UI/UX redesign (visual layer only)
+- New design system: light-first tokens with dark theme (OS default, switchable in the profile menu), one radius scale, soft shadows, restyled buttons/inputs/cards/badges/tables/tabs/alerts/toasts/dialogs (src/app/globals.css, src/components/ui.tsx). Existing class names and colour tokens are kept, so every module inherits the new look.
+- App shell: grouped, collapsible sidebar (icon-rail mode with tooltips), mobile drawer, header with global search, always-visible Scan action, sync indicator and profile menu. Role-based link visibility unchanged; every route kept.
+- Dashboard rebuilt: KPI tiles (test ids unchanged), attention list, status distribution, availability by type, procurement stages, recent loan activity — all from existing data.
+- Items: sortable table on desktop that becomes a card list on phones, saved-view chips, filter panel with active-filter chips, paging (50/page), Export CSV and Add item kept.
+- Forms: sectioned item form, sticky action bars, in-page confirmation dialog (replaces window.confirm), success toasts, inline error alerts; login, scanner, photo capture, error/forbidden/offline/404 pages redesigned.
+- Added dependency: lucide-react (icons). No schema, server-action, API or permission changes.
+- Test change: tests/e2e/auth.spec.ts now clicks the in-page "Confirm" button instead of accepting a native dialog.
+
 ## 0.1.0 — 10 Nov 2026 (build baseline, pending Naveen's v1.0 approval)
 - Architecture, data model, decision log, open-question register and traceability matrix (docs/).
 - Database: 7 Supabase-compatible migrations — schema for all section 6 entities, workflow functions, RLS for every table, finance split tables, append-only audit log, double-checkout and holdings constraints, reference data.

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertCircle, Camera, Keyboard, Search, VideoOff } from "lucide-react";
 
 type Idx = { id: string; name: string; model_number: string | null; type: string; status: string; holder_label: string | null }[];
 
@@ -92,14 +93,18 @@ export function Scanner({ walkthroughId }: { walkthroughId?: string } = {}) {
     else if (matches[0]) router.push(dest(matches[0].id));
   }
   return (
-    <div className="flex flex-col gap-4">
-      <div className="card overflow-hidden">
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      <div className="card relative overflow-hidden">
         {active ? (
-          <video ref={video} className="aspect-square w-full bg-black object-cover" muted playsInline data-testid="scanner-video" />
+          <div className="relative">
+            <video ref={video} className="aspect-square w-full bg-black object-cover" muted playsInline data-testid="scanner-video" />
+            {/* viewfinder frame */}
+            <div className="pointer-events-none absolute inset-[18%] rounded-2xl border-2 border-white/80 shadow-[0_0_0_999px_rgb(0_0_0/0.35)]" aria-hidden />
+            <p className="absolute inset-x-0 bottom-3 text-center text-sm font-medium text-white drop-shadow">Align the QR code inside the frame</p>
+          </div>
         ) : (
           <button
-            className="btn btn-primary w-full text-xl"
-            style={{ minHeight: 120 }}
+            className="flex w-full flex-col items-center justify-center gap-3 bg-[var(--color-brand)] px-6 py-12 text-[var(--color-brand-ink)] transition-colors hover:bg-[var(--color-brand-hover)]"
             onClick={() => {
               setErr(null);
               done.current = false;
@@ -107,34 +112,42 @@ export function Scanner({ walkthroughId }: { walkthroughId?: string } = {}) {
             }}
             data-testid="start-camera"
           >
-            📷 Start camera
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15">
+              <Camera size={32} aria-hidden />
+            </span>
+            <span className="text-xl font-semibold">Start camera</span>
+            <span className="text-sm opacity-80">Scan an item or kit QR label</span>
           </button>
         )}
       </div>
       {active && (
         <button className="btn btn-secondary" onClick={() => setActive(false)}>
-          Stop camera
+          <VideoOff size={16} aria-hidden /> Stop camera
         </button>
       )}
       {err && (
-        <p role="alert" className="font-semibold text-[var(--color-bad)]">
-          {err}
+        <p role="alert" className="alert alert-bad font-medium">
+          <AlertCircle size={18} aria-hidden /> <span className="min-w-0">{err}</span>
         </p>
       )}
-      <form onSubmit={submit} className="card flex flex-col gap-2 p-4">
+      <form onSubmit={submit} className="card flex flex-col gap-3 p-4">
         <label className="field">
-          <span>Label worn or missing? Type the ID or name</span>
-          <input className="input text-lg" value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. 104, MTMH_104 or FX3" data-testid="manual-id" autoComplete="off" />
+          <span className="flex items-center gap-2">
+            <Keyboard size={16} aria-hidden /> Label worn or missing? Type the ID or name
+          </span>
+          <input className="input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="e.g. 104, MTMH_104 or FX3" data-testid="manual-id" autoComplete="off" />
         </label>
-        <button className="btn btn-primary">Open</button>
+        <button className="btn btn-primary">
+          <Search size={16} aria-hidden /> Open
+        </button>
         {matches.length > 0 && (
-          <ul className="flex flex-col gap-1" data-testid="manual-matches">
+          <ul className="flex flex-col divide-y divide-[var(--color-line)] rounded-lg border border-[var(--color-line)]" data-testid="manual-matches">
             {matches.map((m) => (
-              <li key={m.id}>
+              <li key={m.id} className="px-3 py-2.5">
                 <a href={walkthroughId ? `/walkthrough/${walkthroughId}?item=${m.id}#scan` : `/items/${m.id}`} className="font-semibold">
                   {m.id} · {m.name}
                 </a>{" "}
-                <span className="muted text-sm">
+                <span className="muted block text-sm">
                   {m.status}
                   {m.holder_label ? ` · ${m.holder_label}` : ""}
                 </span>
