@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
-export async function POST() {
-  if (env.authProvider !== "supabase") return NextResponse.json({ error: "Google sign-in not configured" }, { status: 400 });
-  const { supabaseGoogleSignInUrl } = await import("@/lib/auth/supabase");
-  return NextResponse.redirect(await supabaseGoogleSignInUrl(`${env.appBaseUrl}/auth/callback`), 303);
+import { supabaseGoogleSignInUrl } from "@/lib/auth/supabase";
+
+export async function GET() {
+  const url = await supabaseGoogleSignInUrl();
+
+  if (!url) {
+    return NextResponse.redirect(new URL("/login?error=oauth", process.env.APP_BASE_URL));
+  }
+
+  return NextResponse.redirect(url, 303);
 }
