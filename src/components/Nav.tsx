@@ -1,36 +1,66 @@
-import Link from "next/link";
 import type { CurrentUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
+import { SidebarNav, type NavGroup } from "@/components/shell/SidebarNav";
 
-type L = { href: string; label: string; phase?: 1 | 2 | 3; show?: (u: CurrentUser) => boolean };
-const LINKS: L[] = [
-  { href: "/", label: "Home" },
-  { href: "/items", label: "Items" },
-  { href: "/loans", label: "Loans" },
-  { href: "/people", label: "People" },
-  { href: "/kits", label: "Kits", phase: 2 },
-  { href: "/reservations", label: "Reservations", phase: 2 },
-  { href: "/repairs", label: "Repairs", phase: 2 },
-  { href: "/lost", label: "Lost & found" },
-  { href: "/to-buy", label: "To-buy", phase: 2 },
-  { href: "/orders", label: "Orders", phase: 2, show: (u) => can.viewOrders(u) },
-  { href: "/walkthrough", label: "Walkthrough", phase: 2 },
-  { href: "/reports", label: "Reports" },
-  { href: "/labels", label: "Print labels", show: (u) => can.labels(u) },
-  { href: "/unsorted", label: "Unsorted", show: (u) => can.unsorted(u) },
-  { href: "/import", label: "Import review", show: (u) => can.importReview(u) },
-  { href: "/audit-log", label: "Audit log", show: (u) => can.globalAudit(u) },
-  { href: "/settings", label: "Settings", show: (u) => can.settings(u) },
+type L = { href: string; label: string; icon: string; phase?: 1 | 2 | 3; show?: (u: CurrentUser) => boolean };
+type G = { label: string; links: L[] };
+
+/**
+ * Navigation structure. Every existing route is kept; only grouping and icons are new.
+ * Role-based visibility (`show`) is unchanged from the previous flat list.
+ */
+const GROUPS: G[] = [
+  { label: "Overview", links: [{ href: "/", label: "Dashboard", icon: "dashboard" }] },
+  {
+    label: "Inventory",
+    links: [
+      { href: "/items", label: "Items", icon: "items" },
+      { href: "/kits", label: "Kits", icon: "kits", phase: 2 },
+      { href: "/labels", label: "Labels", icon: "labels", show: (u) => can.labels(u) },
+      { href: "/unsorted", label: "Unsorted", icon: "unsorted", show: (u) => can.unsorted(u) },
+      { href: "/lost", label: "Lost & found", icon: "lost" },
+    ],
+  },
+  {
+    label: "Operations",
+    links: [
+      { href: "/loans", label: "Loans", icon: "loans" },
+      { href: "/people", label: "People", icon: "people" },
+      { href: "/reservations", label: "Reservations", icon: "reservations", phase: 2 },
+      { href: "/repairs", label: "Repairs", icon: "repairs", phase: 2 },
+      { href: "/walkthrough", label: "Walkthrough", icon: "walkthrough", phase: 2 },
+    ],
+  },
+  {
+    label: "Purchasing",
+    links: [
+      { href: "/to-buy", label: "To-buy", icon: "tobuy", phase: 2 },
+      { href: "/orders", label: "Orders", icon: "orders", phase: 2, show: (u) => can.viewOrders(u) },
+    ],
+  },
+  {
+    label: "Insights",
+    links: [
+      { href: "/reports", label: "Reports", icon: "reports" },
+      { href: "/audit-log", label: "Audit log", icon: "audit", show: (u) => can.globalAudit(u) },
+    ],
+  },
+  {
+    label: "Administration",
+    links: [
+      { href: "/import", label: "Import review", icon: "import", show: (u) => can.importReview(u) },
+      { href: "/settings", label: "Settings", icon: "settings", show: (u) => can.settings(u) },
+    ],
+  },
 ];
 
+export function navGroups(user: CurrentUser): NavGroup[] {
+  return GROUPS.map((g) => ({
+    label: g.label,
+    links: g.links.filter((l) => !l.show || l.show(user)).map(({ href, label, icon, phase }) => ({ href, label, icon, phase })),
+  })).filter((g) => g.links.length > 0);
+}
+
 export function Nav({ user }: { user: CurrentUser }) {
-  return (
-    <nav aria-label="Main" className="flex flex-col gap-1">
-      {LINKS.filter((l) => !l.show || l.show(user)).map((l) => (
-        <Link key={l.href} href={l.href} className="rounded-md px-3 py-2.5 font-semibold text-[var(--color-ink)] no-underline hover:bg-[var(--color-wash)]">
-          {l.label} {l.phase && l.phase > 1 && <span className="phase">P{l.phase}</span>}
-        </Link>
-      ))}
-    </nav>
-  );
+  return <SidebarNav groups={navGroups(user)} />;
 }

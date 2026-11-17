@@ -39,10 +39,24 @@ begin
   end if;
 end $$;
 
-create or replace function auth.jwt() returns jsonb
-language sql stable as $$
-  select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
-$$;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'auth'
+      and p.proname = 'jwt'
+      and pg_get_function_identity_arguments(p.oid) = ''
+  ) then
+    execute $f$
+      create function auth.jwt() returns jsonb
+      language sql stable as $b$
+        select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+      $b$
+    $f$;
+  end if;
+end $$;
 
 -- Only (re)define auth.uid() when it does not exist (Supabase ships its own).
 do $$
@@ -62,6 +76,20 @@ begin
   end if;
 end $$;
 
-grant usage on schema auth to anon, authenticated, service_role;
-grant execute on function auth.uid() to anon, authenticated, service_role;
-grant execute on function auth.jwt() to anon, authenticated, service_role;
+-- Grant permissions only when using the local auth compatibility shim.
+-- Supabase manages permissions for its own auth schema.
+do $$
+begin
+  if exists (
+    select 1
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'auth'
+      and c.relname = 'users'
+      and obj_description(c.oid, 'pg_class') = 'LOCAL SHIM - not Supabase'
+  ) then
+    grant usage on schema auth to anon, authenticated, service_role;
+    grant execute on function auth.uid() to anon, authenticated, service_role;
+    grant execute on function auth.jwt() to anon, authenticated, service_role;
+  end if;
+end $$;

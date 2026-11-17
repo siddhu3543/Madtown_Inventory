@@ -26,8 +26,8 @@ test("NFR-006: offboarding revokes an active session immediately", async ({ brow
   await login(o, U.owner);
   await o.goto("/settings");
   const row = o.getByTestId("users-table").locator("tr", { hasText: U.team2 });
-  o.once("dialog", (d) => d.accept());
   await row.getByRole("button", { name: "Offboard" }).click();
+  await row.getByRole("button", { name: "Confirm" }).click(); // in-page confirmation dialog (replaces window.confirm)
   await expect(o.getByTestId("offboarded")).toContainText(`Access revoked for ${U.team2}`);
   await expect(o.getByTestId("users-table").locator("tr", { hasText: U.team2 })).toContainText("(deactivated)");
   await a.goto("/items");
