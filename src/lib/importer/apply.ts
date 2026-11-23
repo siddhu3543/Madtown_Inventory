@@ -23,6 +23,8 @@ export async function runImport(opts: {
   unsorted: string;
   fileRules: Rules;
   mode: ImportMode;
+  /** delete what earlier imports created (items, legacy loans, to-buy and unsorted rows) before importing again */
+  replace?: boolean;
   startedBy: string | null;
   environment: string;
   source: string;
@@ -45,20 +47,30 @@ export async function runImport(opts: {
     await withService(async (c) => {
       rules = await loadRules(c, opts.fileRules);
       const known = (await c.query("select name from people")).rows.map((r) => r.name);
-      plan = buildPlan(opts.sheet1, opts.toBuy, opts.unsorted, rules, known);
-      if (plan.warnings.some((w) => w.level === "error" && ["HEADER_MISSING", "EMPTY"].includes(w.code))) throw new Error("Sheet structure errors; fix the export first");
+      const types = (await c.query("select name from item_types where status <> 'Rejected' order by sort")).rows.map((r) => r.name);
+      plan = buildPlan(opts.sheet1, opts.toBuy, opts.unsorted, rules, known, types);
+      const structural = plan.warnings.filter((w) => w.level === "error" && ["HEADER_MISSING", "EMPTY"].includes(w.code));
+      if (structural.length) throw new Error(`Sheet structure errors: ${structural.map((w) => w.message).join("; ")}`);
+      await c.query("select set_config('app.source', 'Import', true)");
       const existing = (await c.query("select count(*)::int n from items where imported")).rows[0].n;
-      if (existing > 0 && opts.mode !== "dry-run")
+      if (existing > 0 && opts.replace) await purgePreviousImport(c);
+      else if (existing > 0) {
         throw new Error(
-          `Catalog already holds ${existing} imported items; ${opts.mode === "final" ? "the production import runs once (MIG-015)" : "reset staging before re-importing"}`,
+          `The catalog already holds ${existing} items from an earlier import. Tick "Replace data from earlier imports" to swap them for this sheet${opts.mode === "dry-run" ? " (the preview then shows exactly what the replace does)" : ""}.`,
         );
-      if (opts.mode !== "dry-run") await c.query("select set_config('app.source', 'Import', true)");
+      }
+      const clash = (await c.query("select id from items where id = any($1::text[]) order by id", [plan.items.map((i) => i.id)])).rows.map((r) => r.id);
+      if (clash.length)
+        throw new Error(
+          `These item IDs already exist in the app (added by hand, not by an import): ${clash.slice(0, 10).join(", ")}${clash.length > 10 ? ` and ${clash.length - 10} more` : ""}. Remove them or change the IDs in the sheet.`,
+        );
       await apply(c, plan, runId);
       await c.query("set constraints all immediate"); // dry-run must hit the same deferred checks as a real commit
-      if (opts.mode === "dry-run") throw new DryRunDone();
+      if (opts.mode === "dry-run") throw new Error(DRY_RUN_DONE); // roll the transaction back
     }, "Import");
   } catch (e) {
-    if (!(e instanceof DryRunDone)) error = (e as Error).message;
+    const ex = e as Error & { code?: string };
+    if (ex.code !== "DRY_RUN_DONE" && ex.message !== DRY_RUN_DONE) error = explain(ex);
   }
   const p = plan as Plan | null;
   const summary = p ? { ...summarize(p), rules_applied: Object.keys(rules).length } : {};
@@ -80,12 +92,124 @@ export async function runImport(opts: {
   }, "Import");
   return { runId, mode: opts.mode, status: error ? "failed" : "succeeded", summary, warnings: p?.warnings ?? [], error };
 }
-class DryRunDone extends Error {}
+const DRY_RUN_DONE = "DRY_RUN_DONE: preview finished, rolled back";
+
+/** Database errors in words the Owner can act on (errors arrive wrapped by toAppError) */
+function explain(e: Error & { code?: string }): string {
+  const msg = e.message ?? String(e);
+  if ((e.code === "REFERENCE" || e.code === "23503") && /violates foreign key constraint .* on table "(\w+)"/.test(msg) && /^update or delete/.test(msg))
+    return `Earlier imported data is already used by records made in the app (table ${msg.match(/on table "(\w+)"$/)?.[1] ?? "?"}). Replace is blocked so that history is not lost; remove or close those records first. (${msg})`;
+  if (e.code === "DUPLICATE" || e.code === "23505") return `Duplicate value: ${msg}`;
+  if (e.code === "CONSTRAINT" || e.code === "23514") return `A row breaks a data rule: ${msg}`;
+  return msg || "Import failed (no message)";
+}
+
+/**
+ * What would be lost if the earlier import were replaced: anything made or changed in the app (or by the Sheets
+ * sync) on imported items, legacy loans, to-buy and unsorted rows. Two independent checks — the audit log (every
+ * change carries its item and source) and the tables themselves (in case a row was written outside the audit) —
+ * so Replace never cascades away a loan, repair, photo, incident or edit someone made in the app.
+ */
+export async function findAppActivity(c: Db): Promise<string[]> {
+  const found: string[] = [];
+  const audit = (
+    await c.query(
+      `select coalesce(a.item_id, a.table_name) ref
+         from audit_log a
+        where a.source in ('App','Sync') and (
+              a.item_id in (select id from _imp)
+           or (a.table_name = 'wishlist_items' and a.record_id in (select id::text from wishlist_items where legacy))
+           or (a.table_name = 'unsorted_items' and a.record_id in (select id::text from unsorted_items where sheet_row is not null))
+           or (a.table_name in ('loans','loan_extensions') and a.record_id in (select id::text from loans where created_via = 'Import')))
+        group by 1 order by max(a.at) desc`,
+    )
+  ).rows.map((r) =>
+    (r.ref as string)
+      .replace(/^wishlist_items$/, "to-buy rows")
+      .replace(/^unsorted_items$/, "unsorted rows")
+      .replace(/^loans$/, "imported loans"),
+  );
+  const list = (refs: string[]) => `${refs.slice(0, 6).join(", ")}${refs.length > 6 ? ` and ${refs.length - 6} more` : ""}`;
+  if (audit.length) found.push(`changed in the app: ${list(audit)}`);
+  const checks: [string, string][] = [
+    [
+      "loans made in the app",
+      "select distinct l.item_id ref from loan_lines l join loans o on o.id = l.loan_id where o.created_via <> 'Import' and l.item_id in (select id from _imp)",
+    ],
+    [
+      "check-ins or transfers on imported loans",
+      "select distinct e.item_id ref from loan_events e join loans o on o.id = e.loan_id where o.created_via = 'Import' and e.event <> 'legacy'",
+    ],
+    ["photos taken in the app", "select distinct item_id ref from photos where item_id in (select id from _imp) and provider <> 'legacy-link'"],
+    ["repairs or services", "select distinct item_id ref from maintenance_events where not legacy and item_id in (select id from _imp)"],
+    ["maintenance schedules", "select distinct item_id ref from maintenance_schedules where item_id in (select id from _imp)"],
+    ["incidents", "select distinct item_id ref from incidents where not legacy and item_id in (select id from _imp)"],
+    ["missing parts", "select distinct item_id ref from missing_parts where not legacy and item_id in (select id from _imp)"],
+    ["detached accessories", "select distinct item_id ref from detached_accessories where not legacy and item_id in (select id from _imp)"],
+    ["retirement requests", "select distinct item_id ref from retirement_requests where item_id in (select id from _imp)"],
+    ["walkthrough audits", "select distinct item_id ref from audit_lines where item_id in (select id from _imp)"],
+    ["kits", "select distinct item_id ref from kit_items where item_id in (select id from _imp)"],
+    ["reservations", "select distinct item_id ref from reservations where item_id in (select id from _imp)"],
+    [
+      "orders received into imported items",
+      "select distinct li.item_id ref from order_line_items li join order_lines ol on ol.id = li.order_line_id join orders o on o.id = ol.order_id where li.item_id in (select id from _imp) and o.notes is distinct from 'Imported from sheet notes'",
+    ],
+    ["orders placed from imported to-buy rows", "select distinct w.item_description ref from order_lines ol join wishlist_items w on w.id = ol.wishlist_id where w.legacy"],
+    [
+      "items added in the app linked to imported items",
+      "select id ref from items where not imported and (parent_item_id in (select id from _imp) or case_item_id in (select id from _imp))",
+    ],
+    [
+      "unsorted rows added in the app pointing at imported items",
+      "select item ref from unsorted_items where sheet_row is null and (duplicate_of_item_id in (select id from _imp) or converted_item_ids && array(select id from _imp))",
+    ],
+  ];
+  for (const [label, sql] of checks) {
+    const refs = (await c.query(sql)).rows.map((r) => r.ref as string);
+    if (refs.length) found.push(`${label}: ${list(refs)}`);
+  }
+  return found;
+}
+
+/**
+ * Removes everything earlier imports created, in dependency order, inside the import transaction (so a preview
+ * shows the result and a failure rolls it all back). Refuses — before deleting anything — when findAppActivity
+ * reports work done in the app, because several tables cascade-delete with their item.
+ */
+export async function purgePreviousImport(c: Db) {
+  const q = (sql: string) => c.query(sql);
+  await q("create temp table _imp on commit drop as select id from items where imported");
+  const activity = await findAppActivity(c);
+  if (activity.length)
+    throw new Error(
+      `REPLACE_BLOCKED: Replace stopped — nothing was deleted. The earlier import has been used in the app, and replacing it would delete that history (${activity.join("; ")}). Keep the current data and update it in the app, or import into an empty catalog.`,
+    );
+  await q("update unsorted_items set duplicate_of_item_id = null where duplicate_of_item_id in (select id from _imp)");
+  await q("delete from unsorted_items where sheet_row is not null");
+  await q("delete from missing_parts where legacy and item_id in (select id from _imp)");
+  await q("update wishlist_items set source_missing_part_id = null where source_missing_part_id is not null and source_missing_part_id not in (select id from missing_parts)");
+  await q("delete from wishlist_items where legacy");
+  await q("create temp table _ord on commit drop as select id from orders where notes = 'Imported from sheet notes'");
+  await q("delete from order_line_items where order_line_id in (select id from order_lines where order_id in (select id from _ord))");
+  await q("delete from orders where id in (select id from _ord)");
+  await q("create temp table _loan on commit drop as select id from loans where created_via = 'Import'");
+  await q("update item_holdings set loan_line_id = null where loan_line_id in (select id from loan_lines where loan_id in (select id from _loan))");
+  await q("delete from loans where id in (select id from _loan)");
+  await q("delete from item_holdings where item_id in (select id from _imp)");
+  await q("delete from detached_accessories where legacy and item_id in (select id from _imp)");
+  await q("delete from maintenance_events where legacy and item_id in (select id from _imp)");
+  await q("delete from incidents where legacy and item_id in (select id from _imp)");
+  await q("update items set parent_item_id = null, case_item_id = null where id in (select id from _imp)");
+  await q("update items set stock_image_photo_id = null, latest_photo_id = null where id in (select id from _imp)");
+  await q("delete from photos where item_id in (select id from _imp)");
+  await q("delete from items where id in (select id from _imp)");
+}
 
 async function apply(c: Db, p: Plan, runId: string) {
   const one = async (sql: string, params: unknown[]) => (await c.query(sql, params)).rows[0];
   const madtown = (await one("select id from people where is_madtown", [])).id as string;
   const office = (await one("select id from locations where is_default_home", [])).id as string;
+  for (const t of p.newTypes) await c.query("insert into item_types(name, status, sort, default_loan_days) values ($1, 'Approved', 200, 7) on conflict (name) do nothing", [t]);
   for (const n of p.people) {
     await c.query(
       `insert into people(name, person_type, person_type_to_verify, notes) values ($1, 'Freelancer', true, 'Created by sheet import; type to verify') on conflict (lower(name)) do nothing`,
@@ -138,10 +262,11 @@ async function apply(c: Db, p: Plan, runId: string) {
     for (const ph of it.photos) {
       const r = await one(
         `insert into photos(item_id, kind, provider, provider_file_id, provider_folder_id, original_url, link_kind, legacy_text, upload_state, note)
-                         values ($1,$2,'legacy-link',$3,$4,$5,$6,$7,'legacy','Imported from sheet') returning id`,
-        [it.id, ph.kind, ph.provider_file_id, ph.provider_folder_id, ph.original_url, ph.link_kind, ph.legacy_text],
+                         values ($1,$2,'legacy-link',$3,$4,$5,$6,$7,'legacy',$8) returning id`,
+        [it.id, ph.kind, ph.provider_file_id, ph.provider_folder_id, ph.original_url, ph.link_kind, ph.legacy_text, ph.note ?? "Imported from sheet"],
       );
-      if (ph.link_kind !== "text") await c.query(`update items set ${ph.kind === "Stock" ? "stock_image_photo_id" : "latest_photo_id"} = $2 where id = $1`, [it.id, r.id]);
+      if (ph.link_kind !== "text" && ph.primary)
+        await c.query(`update items set ${ph.kind === "Stock" ? "stock_image_photo_id" : "latest_photo_id"} = $2 where id = $1`, [it.id, r.id]);
     }
 
   // legacy loans first (lines must exist before Checked-out holdings reference them)
@@ -240,9 +365,11 @@ async function apply(c: Db, p: Plan, runId: string) {
   const wlByRow = new Map<number, string>();
   for (const wl of p.wishlist) {
     const r = await one(
-      `insert into wishlist_items(item_description, reason, replaces_or_adds, replaces_or_adds_note, priority, status, verify_first, notes, sheet_row, legacy, proposed_at)
-                         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,true, now()) returning id`,
-      [wl.item_description, wl.reason, wl.replaces_or_adds, wl.replaces_or_adds_note, wl.priority, wl.status, wl.verify_first, wl.notes, wl.sheet_row],
+      `insert into wishlist_items(item_description, reason, replaces_or_adds, replaces_or_adds_note, priority, status, verify_first, notes, sheet_row, legacy, proposed_at,
+                                  decision_comment, rejected_at, approved_at)
+                         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,true, now(), $10,
+                                 case when $6 = 'Rejected' then now() end, case when $6 in ('Approved','Ordered','Received') then now() end) returning id`,
+      [wl.item_description, wl.reason, wl.replaces_or_adds, wl.replaces_or_adds_note, wl.priority, wl.status, wl.verify_first, wl.notes, wl.sheet_row, wl.sheet_status],
     );
     wlByRow.set(wl.sheet_row, r.id);
     await c.query("insert into wishlist_financials(wishlist_id, legacy_raw) values ($1,$2)", [r.id, wl.raw]);
@@ -257,15 +384,10 @@ async function apply(c: Db, p: Plan, runId: string) {
     ]);
   // unsorted (MIG-012/013)
   for (const u of p.unsorted)
-    await c.query("insert into unsorted_items(sheet_row, item, known, question, who_can_answer, status, duplicate_of_item_id) values ($1,$2,$3,$4,$5,$6,$7)", [
-      u.sheet_row,
-      u.item,
-      u.known,
-      u.question,
-      u.who,
-      u.status,
-      u.duplicate_of,
-    ]);
+    await c.query(
+      "insert into unsorted_items(sheet_row, item, known, question, who_can_answer, status, duplicate_of_item_id, converted_item_ids, notes) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+      [u.sheet_row, u.item, u.known, u.question, u.who, u.status, u.duplicate_of, u.converted_item_ids, u.notes],
+    );
   // counted status consistency
   for (const it of p.items) if (it.quantity_mode === "Counted") await c.query("select app.refresh_counted_status($1)", [it.id]);
 }

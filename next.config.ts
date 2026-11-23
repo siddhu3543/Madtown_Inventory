@@ -1,9 +1,10 @@
-
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["pg", "bcryptjs"],
+  serverExternalPackages: ["pg", "bcryptjs", "exceljs"],
+  // the import now bundles its rules (src/lib/importer/mapping-rules.json); the fixture files are only
+  // read when the SYNTHETIC test fixture is chosen outside production
   outputFileTracingIncludes: {
     "/*": ["./fixtures/mapping-rules.json"],
   },

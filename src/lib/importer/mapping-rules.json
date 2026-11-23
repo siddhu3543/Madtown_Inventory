@@ -1,0 +1,66 @@
+{
+  "_comment": "Mapping rules for the REAL Madtown sheet (Sheet1 / To buy / Not yet sorted, export of 17 Oct 2026). Each rule reflects what the sheet notes say; everything it creates stays To verify. Rules saved on the Import review page override these. The synthetic test fixture uses fixtures/mapping-rules.json instead.",
+  "MTMH_115": { "owner": "Anand", "owner_confirmed": true, "source": "Note: 'Belongs to Anand, not Madtown (per Naveen, 16 Oct 2026)'" },
+  "MTMH_187": { "owner": "Anand", "owner_confirmed": false, "source": "Note: 'Anand's Card' while Posession says Madtown; Naveen to confirm" },
+  "MTMH_163": { "parent": "MTMH_101", "source": "SmallRig cage for the FX3" },
+  "MTMH_164": { "parent": "MTMH_101", "source": "FX3 rig part" },
+  "MTMH_165": { "parent": "MTMH_101", "source": "FX3 rig part" },
+  "MTMH_166": { "parent": "MTMH_101", "source": "FX3 rig part" },
+  "MTMH_207": { "parent": "MTMH_101", "source": "Not yet sorted: FX3 accessories added as MTMH_207" },
+  "MTMH_183": { "parent": "MTMH_182", "source": "DJI RS4 Pro set" },
+  "MTMH_184": { "parent": "MTMH_182", "source": "DJI RS4 Pro set" },
+  "MTMH_204": { "parent": "MTMH_182", "source": "Note: loose accessories laid out beside the RS4 Pro gimbal" },
+  "MTMH_159": { "parent": "MTMH_158", "source": "Note: the F750 charger belongs with the F750 batteries" },
+  "MTMH_169": { "parent": "MTMH_168", "source": "Note: SA-series parts 'All in one carton box' with the SA-P1" },
+  "MTMH_170": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_171": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_172": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_173": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_174": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_175": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_176": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_177": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_178": { "parent": "MTMH_168", "source": "SA-series box" },
+  "MTMH_199": { "parent": "MTMH_152", "source": "Note: confirm whether it is the MC kit case" },
+  "MTMH_200": { "parent": "MTMH_152", "source": "Note: related to MTMH_152 (Aputure MC set of 4)" },
+  "MTMH_193": { "parent": "MTMH_127", "source": "Note: battery photographed with the GM55 monitor accessories" },
+  "MTMH_205": { "parent": "MTMH_206", "source": "GoPro bundle accessories (camera itself missing)" },
+  "MTMH_214": { "parent": "MTMH_213", "source": "Second lens with the Canon DSLR" },
+  "MTMH_215": { "parent": "MTMH_213", "source": "Battery and charger with the Canon DSLR" },
+  "MTMH_226": { "parent": "MTMH_203", "source": "Remote of the NEEWER X17 II teleprompter" },
+  "MTMH_227": { "parent": "MTMH_203", "source": "Hard case of the NEEWER X17 II teleprompter" },
+  "MTMH_119": {
+    "detached": [{ "description": "Battery and charger", "holder": "Anand", "reason": "Timely charging" }],
+    "primary_holder": "Madtown",
+    "source": "Note: 'Battery and charger with Anand (For timely charging)'; Posession 'Madtown, Anand'"
+  },
+  "MTMH_142": { "custodian": true, "source": "Note: 'With Anand' — a charger Anand keeps for charging, not a loan" },
+  "MTMH_143": { "custodian": true, "source": "Note: 'With Anand' — a charger Anand keeps for charging, not a loan" },
+  "MTMH_106": { "custodian": true, "source": "Repairing; Anand sent it for repair, not a loan" },
+  "MTMH_145": {
+    "holdings": [
+      { "holder": "Madtown", "qty": 2 },
+      { "status": "Lost", "qty": 1 }
+    ],
+    "source": "Note: 'One card lost at Shorefest by Samuel'; stock 3"
+  },
+  "MTMH_126": {
+    "holdings": [
+      { "holder": "Madtown", "qty": 2 },
+      { "holder": "Purushotham", "qty": 1, "legacy_loan": true },
+      { "status": "Missing", "qty": 1 }
+    ],
+    "source": "Note: stock 4, one missing, one replaced or misplaced when loaned to Purushotham about a year ago (Naveen to call him)"
+  },
+  "MTMH_130": {
+    "holdings": [
+      { "holder": "Madtown", "qty": 1 },
+      { "holder": "Kittu", "qty": 1, "legacy_loan": true }
+    ],
+    "source": "Note: 'With Kittu; he said he will return it soon' (how many of the 2 cards: to confirm)"
+  },
+  "MTMH_138": {
+    "legacy_loan": { "borrower": "Unknown borrower (legacy)", "status": "Returned", "condition_in": "Bad condition" },
+    "source": "Note: 'Loaned out and came back in very bad shape' (borrower unknown)"
+  }
+}

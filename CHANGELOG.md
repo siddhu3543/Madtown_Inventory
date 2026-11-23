@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — sheet import fixes (23 Nov 2026)
+- Import review accepts one Excel workbook (.xlsx) with the tabs Sheet1, To buy and Not yet sorted; tabs are found by name or by their headers. One file per tab (CSV or .xlsx) still works.
+- Real-sheet fixes: Stock written as 1.0 / 20.0, dates like "2026-10-16 00:00:00" or 16/10/2026, several photo links in one cell ("Previous photo: …" kept as history), new item types (e.g. Hard Disk) created instead of forced to Accessory, Posession text such as "Not at office, …" no longer creates fake people, free-text To buy / Not yet sorted statuses mapped (original text kept).
+- Re-import: "Replace data from earlier imports" swaps what an earlier import created (for example the synthetic seed data); it stops if those items already have records made in the app. Without it, the error says what to do.
+- Preview (dry-run) now runs with the same item-ID rules as a real import; errors are explained in words.
+- Mapping rules for the real sheet are bundled with the app (src/lib/importer/mapping-rules.json), so the import no longer reads a file from disk at run time (which fails on Vercel).
+
 ## Unreleased — UI/UX redesign (visual layer only)
 - New design system: light-first tokens with dark theme (OS default, switchable in the profile menu), one radius scale, soft shadows, restyled buttons/inputs/cards/badges/tables/tabs/alerts/toasts/dialogs (src/app/globals.css, src/components/ui.tsx). Existing class names and colour tokens are kept, so every module inherits the new look.
 - App shell: grouped, collapsible sidebar (icon-rail mode with tooltips), mobile drawer, header with global search, always-visible Scan action, sync indicator and profile menu. Role-based link visibility unchanged; every route kept.
