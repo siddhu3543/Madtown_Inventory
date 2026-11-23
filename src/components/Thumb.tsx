@@ -1,13 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
+import { ImageOff } from "lucide-react";
+
 export function Thumb({ id, alt, size = 56, full }: { id: string | null | undefined; alt: string; size?: number; full?: boolean }) {
   if (!id)
     return (
       <div
         aria-label="no photo"
-        className="flex items-center justify-center rounded-md border border-dashed border-[var(--color-line)] text-xs muted"
+        role="img"
+        className="flex shrink-0 items-center justify-center rounded-lg border border-dashed border-[var(--color-line-strong)] bg-[var(--color-wash)] text-[var(--color-muted)]"
         style={{ width: size, height: size }}
       >
-        no photo
+        <ImageOff size={Math.round(size * 0.36)} aria-hidden />
       </div>
     );
   return (
@@ -15,7 +18,7 @@ export function Thumb({ id, alt, size = 56, full }: { id: string | null | undefi
       src={`/api/photos/${id}/file${full ? "?size=full" : ""}`}
       alt={alt}
       loading="lazy"
-      className="rounded-md object-cover bg-[var(--color-wash)]"
+      className="shrink-0 rounded-lg border border-[var(--color-line)] bg-[var(--color-wash)] object-cover"
       style={{ width: size, height: size }}
     />
   );

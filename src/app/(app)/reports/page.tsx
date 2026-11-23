@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { withUser } from "@/lib/db";
 import { loansReport, repairsReport, utilisation, assetValue, tco, shoots } from "@/lib/services/reports";
-import { PageHeader, Section, ItemLink, Phase, Empty } from "@/components/ui";
+import { PageHeader, Section, ItemLink, Phase, Empty, Tabs } from "@/components/ui";
 import { fmtRs, fmtDate } from "@/lib/format";
 export const metadata = { title: "Reports" };
 
@@ -295,15 +295,20 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
   return (
     <>
       <PageHeader title="Reports" />
-      <div className="mb-4 flex flex-wrap gap-2">
-        {tabs
+      <Tabs
+        active={tab}
+        tabs={tabs
           .filter(([, , , fin]) => !fin || u.financeVisible)
-          .map(([k, l, p]) => (
-            <Link key={k} href={`/reports?tab=${k}`} className={`btn btn-sm ${tab === k ? "btn-primary" : "btn-secondary"}`}>
-              {l} {p && p > 1 && <Phase n={p} />}
-            </Link>
-          ))}
-      </div>
+          .map(([k, l, p]) => ({
+            key: k,
+            href: `/reports?tab=${k}`,
+            label: (
+              <>
+                {l} {p && p > 1 && <Phase n={p} />}
+              </>
+            ),
+          }))}
+      />
       {body}
     </>
   );

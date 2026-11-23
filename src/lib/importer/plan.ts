@@ -301,17 +301,25 @@ export function buildPlan(sheet1: string, toBuy: string, unsorted: string, rules
 
     // Stock -> quantity mode (11.2)
     const stockTxt = t["Stock"];
-    if (!stockTxt) {
+    const stockValue = Number(stockTxt);
+
+    if (!stockTxt.trim()) {
       it.stock = 0;
       it.stock_to_verify = true;
       it.stock_to_verify_reason = "Stock blank in sheet";
       w("Sheet1", row, id, "warning", "STOCK_BLANK", "Stock blank -> 0, To verify");
-    } else if (!/^\d+$/.test(stockTxt)) {
+    } else if (
+      !Number.isFinite(stockValue) ||
+      !Number.isInteger(stockValue) ||
+      stockValue < 0
+    ) {
       it.stock = 0;
       it.stock_to_verify = true;
-      it.stock_to_verify_reason = `Stock "${stockTxt}" not a number`;
-      w("Sheet1", row, id, "error", "STOCK_BAD", `Stock "${stockTxt}" not a number`);
-    } else it.stock = +stockTxt;
+      it.stock_to_verify_reason = `Stock "${stockTxt}" not a valid whole number`;
+      w("Sheet1", row, id, "error", "STOCK_BAD", `Stock "${stockTxt}" not a valid whole number`);
+    } else {
+      it.stock = stockValue;
+    }
     it.quantity_mode = (rule.quantity_mode as "Single" | "Counted") ?? (it.stock > 1 ? "Counted" : "Single");
     if (it.quantity_mode === "Counted" && it.stock > 1) w("Sheet1", row, id, "info", "COUNTED", `Stock ${it.stock} -> Counted (unless per-unit tagging is decided, OQ-N-03)`);
     if (/TO VERIFY|confirm actual count|confirm count/i.test(t["Notes"])) {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckCircle2, Pencil, Printer, ScanLine } from "lucide-react";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getItemFull, lookups } from "@/lib/services/items";
@@ -42,31 +43,31 @@ export default async function ItemPage({
   let primary: React.ReactNode = null;
   if (lostOrMissing && it.quantity_mode === "Single" && can.report(u))
     primary = (
-      <a href="#found" className="btn btn-primary w-full text-lg" data-testid="primary-action">
+      <a href="#found" className="btn btn-primary w-full sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} data-testid="primary-action">
         Mark as found
       </a>
     );
   else if (openLoan && can.checkin(u) && (isMine || can.checkoutOthers(u)) && it.quantity_mode === "Single")
     primary = (
-      <Link href={`/loans/${openLoan.id}`} className="btn btn-primary w-full text-lg" data-testid="primary-action">
+      <Link href={`/loans/${openLoan.id}`} className="btn btn-primary w-full sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} data-testid="primary-action">
         Check in
       </Link>
     );
   else if (it.status === "Available" && it.is_active && can.checkoutSelf(u) && (it.quantity_mode === "Single" || it.available_qty > 0))
     primary = (
-      <Link href={`/items/${it.id}/checkout`} className="btn btn-primary w-full text-lg" data-testid="primary-action">
+      <Link href={`/items/${it.id}/checkout`} className="btn btn-primary w-full sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} data-testid="primary-action">
         Check out
       </Link>
     );
   else if (it.quantity_mode === "Counted" && it.available_qty > 0 && can.checkoutSelf(u) && it.is_active)
     primary = (
-      <Link href={`/items/${it.id}/checkout`} className="btn btn-primary w-full text-lg" data-testid="primary-action">
+      <Link href={`/items/${it.id}/checkout`} className="btn btn-primary w-full sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} data-testid="primary-action">
         Check out
       </Link>
     );
   else if (can.report(u))
     primary = (
-      <a href="#report" className="btn btn-secondary w-full text-lg" data-testid="primary-action">
+      <a href="#report" className="btn btn-secondary w-full sm:w-auto sm:min-w-48" style={{ minHeight: 52 }} data-testid="primary-action">
         Report issue
       </a>
     );
@@ -143,42 +144,43 @@ export default async function ItemPage({
   return (
     <>
       {sp.scanned && (
-        <p className="mb-2 font-semibold text-[var(--color-ok)]" data-testid="scanned-banner">
-          Scanned {it.id}
+        <p className="alert alert-ok mb-4 font-medium" data-testid="scanned-banner">
+          <ScanLine size={18} aria-hidden /> Scanned {it.id}
         </p>
       )}
       {sp.found && (
-        <p role="status" className="mb-2 rounded-md border-2 border-[var(--color-ok)] p-3 font-semibold text-[var(--color-ok)]" data-testid="form-ok">
-          Marked as found. Managers were notified.
+        <p role="status" className="alert alert-ok mb-4 font-medium" data-testid="form-ok">
+          <CheckCircle2 size={18} aria-hidden /> Marked as found. Managers were notified.
         </p>
       )}
       {sp.created && (
-        <p role="status" className="mb-2 rounded-md border-2 border-[var(--color-ok)] p-3 font-semibold text-[var(--color-ok)]">
-          Created {it.id}. Add a stock photo and print its QR label.
+        <p role="status" className="alert alert-ok mb-4 font-medium">
+          <CheckCircle2 size={18} aria-hidden /> Created {it.id}. Add a stock photo and print its QR label.
         </p>
       )}
       <PageHeader
+        back={{ href: "/items", label: "Items" }}
         title={`${it.id} · ${it.name}`}
         sub={<>{[it.brand, it.type, it.subtype, it.model_number ?? (it.model_tbd ? "Model TBD" : null)].filter(Boolean).join(" · ")}</>}
         actions={
           <>
             {can.editItems(u) && (
               <Link href={`/items/${it.id}/edit`} className="btn btn-secondary">
-                Edit
+                <Pencil size={16} aria-hidden /> Edit
               </Link>
             )}
             {can.labels(u) && (
               <Link href={`/labels?ids=${it.id}`} className="btn btn-secondary">
-                Print label
+                <Printer size={16} aria-hidden /> Print label
               </Link>
             )}
           </>
         }
       />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] [&>*]:min-w-0">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] [&>*]:min-w-0">
         <div>
-          <div className="card mb-4 p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-2" data-testid="item-status">
+          <div className="card mb-5 p-5">
+            <div className="mb-4 flex flex-wrap items-center gap-2" data-testid="item-status">
               <Badge v={it.display_status} /> <Cond v={it.condition} />
               {!it.owned_by_madtown && <Flag>Owned by {it.owner_name} — not a Madtown asset</Flag>}
               {it.flag_to_verify && (
@@ -193,62 +195,64 @@ export default async function ItemPage({
                 </Flag>
               )}
             </div>
-            {primary && <div className="mb-3 no-print">{primary}</div>}
-            <div className="mb-4 grid grid-cols-2 gap-3">
-              <figure>
-                <figcaption className="muted mb-1 text-sm font-semibold">Stock image</figcaption>
-                {stock?.upload_state === "legacy" ? <LegacyPhoto p={stock} /> : <Thumb id={stock?.id} alt="stock image" size={150} full />}
-              </figure>
-              <figure>
-                <figcaption className="muted mb-1 text-sm font-semibold">Latest photo</figcaption>
-                {latest?.upload_state === "legacy" ? <LegacyPhoto p={latest} /> : <Thumb id={latest?.id} alt="latest photo" size={150} full />}
-                {!latest && d.photos.find((p) => p.kind === "Latest" && p.link_kind === "text") && (
-                  <p className="text-sm muted">Sheet says: “{d.photos.find((p) => p.kind === "Latest" && p.link_kind === "text")?.legacy_text}”</p>
-                )}
-              </figure>
+            {primary && <div className="mb-5 no-print">{primary}</div>}
+            <div className="grid gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
+              <div className="grid grid-cols-2 content-start gap-3 md:grid-cols-1">
+                <figure>
+                  <figcaption className="muted mb-1 text-sm font-semibold">Stock image</figcaption>
+                  {stock?.upload_state === "legacy" ? <LegacyPhoto p={stock} /> : <Thumb id={stock?.id} alt="stock image" size={150} full />}
+                </figure>
+                <figure>
+                  <figcaption className="muted mb-1 text-sm font-semibold">Latest photo</figcaption>
+                  {latest?.upload_state === "legacy" ? <LegacyPhoto p={latest} /> : <Thumb id={latest?.id} alt="latest photo" size={150} full />}
+                  {!latest && d.photos.find((p) => p.kind === "Latest" && p.link_kind === "text") && (
+                    <p className="text-sm muted">Sheet says: “{d.photos.find((p) => p.kind === "Latest" && p.link_kind === "text")?.legacy_text}”</p>
+                  )}
+                </figure>
+              </div>
+              <KV
+                rows={[
+                  [
+                    "Item ID",
+                    <span key="i" data-testid="item-id">
+                      {it.id}
+                    </span>,
+                  ],
+                  [
+                    "Quantity",
+                    it.quantity_mode === "Counted" ? (
+                      <span
+                        key="q"
+                        data-testid="qty"
+                      >{`Counted · stock ${it.stock} · available ${it.available_qty} · out ${it.out_qty} · lost ${it.lost_qty}${it.missing_qty ? ` · missing ${it.missing_qty}` : ""}${it.in_repair_qty ? ` · in repair ${it.in_repair_qty}` : ""}`}</span>
+                    ) : (
+                      "Single (one tagged unit)"
+                    ),
+                  ],
+                  [
+                    "Owner",
+                    <span key="o" data-testid="owner">
+                      {it.owner_name}
+                    </span>,
+                  ],
+                  ["Current holder", it.quantity_mode === "Counted" ? (it.holder_names ?? "—") : (it.holder_label ?? "—")],
+                  ["Home location", lk.locations.find((l) => l.id === it.home_location_id)?.name ?? "—"],
+                  ["Serial number", it.serial_number ?? "—"],
+                  ["Parent item", d.parent ? <ItemLink key="p" id={d.parent.id} name={d.parent.name} /> : "—"],
+                  ["Travels in", d.caseItem ? <ItemLink key="c" id={d.caseItem.id} name={d.caseItem.name} /> : it.needs_case ? <Flag key="n">Needs a case</Flag> : "—"],
+                  ["Case capacity", it.case_capacity_note ?? "—"],
+                  ["Label", `${it.label_target}${it.label_note ? ` — ${it.label_note}` : ""}`],
+                  ["Last audited", fmtDate(it.last_audited_at)],
+                  [
+                    "Notes",
+                    <span key="n" className="whitespace-pre-wrap">
+                      {it.notes ?? "—"}
+                    </span>,
+                  ],
+                  ...(it.imported ? [["Sheet row", String(it.sheet_row)] as [string, React.ReactNode]] : []),
+                ]}
+              />
             </div>
-            <KV
-              rows={[
-                [
-                  "Item ID",
-                  <span key="i" data-testid="item-id">
-                    {it.id}
-                  </span>,
-                ],
-                [
-                  "Quantity",
-                  it.quantity_mode === "Counted" ? (
-                    <span
-                      key="q"
-                      data-testid="qty"
-                    >{`Counted · stock ${it.stock} · available ${it.available_qty} · out ${it.out_qty} · lost ${it.lost_qty}${it.missing_qty ? ` · missing ${it.missing_qty}` : ""}${it.in_repair_qty ? ` · in repair ${it.in_repair_qty}` : ""}`}</span>
-                  ) : (
-                    "Single (one tagged unit)"
-                  ),
-                ],
-                [
-                  "Owner",
-                  <span key="o" data-testid="owner">
-                    {it.owner_name}
-                  </span>,
-                ],
-                ["Current holder", it.quantity_mode === "Counted" ? (it.holder_names ?? "—") : (it.holder_label ?? "—")],
-                ["Home location", lk.locations.find((l) => l.id === it.home_location_id)?.name ?? "—"],
-                ["Serial number", it.serial_number ?? "—"],
-                ["Parent item", d.parent ? <ItemLink key="p" id={d.parent.id} name={d.parent.name} /> : "—"],
-                ["Travels in", d.caseItem ? <ItemLink key="c" id={d.caseItem.id} name={d.caseItem.name} /> : it.needs_case ? <Flag key="n">Needs a case</Flag> : "—"],
-                ["Case capacity", it.case_capacity_note ?? "—"],
-                ["Label", `${it.label_target}${it.label_note ? ` — ${it.label_note}` : ""}`],
-                ["Last audited", fmtDate(it.last_audited_at)],
-                [
-                  "Notes",
-                  <span key="n" className="whitespace-pre-wrap">
-                    {it.notes ?? "—"}
-                  </span>,
-                ],
-                ...(it.imported ? [["Sheet row", String(it.sheet_row)] as [string, React.ReactNode]] : []),
-              ]}
-            />
           </div>
 
           {it.quantity_mode === "Counted" && (

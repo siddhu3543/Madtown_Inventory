@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Camera, Loader2 } from "lucide-react";
 import { compressImage } from "@/lib/client/image";
 import { uploadInBackground } from "@/lib/client/photo-uploader";
 
@@ -63,12 +64,13 @@ export function PhotoCapture({
         {label ?? `${kind} photos`}
         {required ? " (required)" : " (optional)"}
       </span>
-      <label className="btn btn-secondary w-full">
-        {busy ? "Processing…" : "📷 Take or add photo"}
+      <label className="btn btn-secondary w-full cursor-pointer border-dashed !py-4 focus-within:ring-2 focus-within:ring-[var(--color-brand)]">
+        {busy ? <Loader2 size={18} aria-hidden className="animate-spin" /> : <Camera size={18} aria-hidden />}
+        {busy ? "Processing…" : "Take or add photo"}
         <input type="file" accept="image/*" capture="environment" multiple className="sr-only" data-testid={`photo-input-${kind}`} onChange={(e) => onFiles(e.target.files)} />
       </label>
       {err && (
-        <p role="alert" className="font-semibold text-[var(--color-bad)]">
+        <p role="alert" className="alert alert-bad font-medium">
           {err}
         </p>
       )}
@@ -76,8 +78,12 @@ export function PhotoCapture({
         {photos.map((p) => (
           <div key={p.id} className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.url} alt="captured" className="h-20 w-20 rounded-md object-cover" />
-            <span className="badge absolute bottom-1 left-1 bg-[var(--color-paper)] text-xs" data-testid="photo-state">
+            <img src={p.url} alt="captured" className="h-20 w-20 rounded-lg border border-[var(--color-line)] object-cover" />
+            <span
+              className="badge absolute bottom-1 left-1 !bg-[var(--color-paper)] !px-1.5 text-xs"
+              data-testid="photo-state"
+              style={{ color: p.state === "uploaded" ? "var(--color-ok)" : p.state === "failed" ? "var(--color-bad)" : "var(--color-muted)" }}
+            >
               {p.state === "uploaded" ? "saved" : p.state === "failed" ? "retrying" : "uploading"}
             </span>
             <input type="hidden" name={name} value={p.id} />
