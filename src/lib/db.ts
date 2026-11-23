@@ -24,10 +24,11 @@ async function run<T>(role: "authenticated" | "service_role", claims: Record<str
   const c = await pool().connect();
   try {
     await c.query("begin");
-    await c.query(`set local role ${role}`);
+    // Set the transaction-local role and request context in one DB round trip.
+    // The role is selected only from this function's closed union, never from user input.
     await c.query(
-      "select set_config('request.jwt.claims', $1, true), set_config('app.source', $2, true), set_config('app.reason', $3, true), set_config('timezone', 'UTC', true)",
-      [JSON.stringify(claims), source, reason ?? ""],
+      "select set_config('role', $1, true), set_config('request.jwt.claims', $2, true), set_config('app.source', $3, true), set_config('app.reason', $4, true), set_config('timezone', 'UTC', true)",
+      [role, JSON.stringify(claims), source, reason ?? ""],
     );
     const out = await fn(c);
     await c.query("commit");
