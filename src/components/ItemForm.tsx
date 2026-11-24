@@ -6,7 +6,7 @@ import type { ActionState } from "@/lib/actions";
 
 type Item = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-/** SCR-06: all item fields with validation; To verify flag; Manager and Owner only. */
+/** SCR-06: all item fields with validation; To verify flag; Admins only. */
 export function ItemForm({
   action,
   lk,
@@ -170,7 +170,7 @@ export function ItemForm({
       </FormSection>
 
       {finance && (
-        <FormSection title="Purchase details" description="Hidden from Team members.">
+        <FormSection title="Purchase details" description="Hidden from Staff.">
           <label className="field">
             <span>Purchase date</span>
             <input name="purchase_date" type="date" className="input" defaultValue={fin?.purchase_date ? String(fin.purchase_date).slice(0, 10) : ""} />

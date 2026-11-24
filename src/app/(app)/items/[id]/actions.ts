@@ -115,8 +115,7 @@ export async function toBuyFromDefect(_: ActionState, fd: FormData): Promise<Act
       );
       await c.query("insert into wishlist_related_items(wishlist_id, item_id) values ($1,$2)", [w.rows[0].id, id]);
       // linking the missing part is a Manager update (RLS); a Team member's proposal keeps source_missing_part_id for the Manager to confirm
-      if (str(fd, "missing_part_id") && (u.role === "Owner" || u.role === "Manager"))
-        await c.query("update missing_parts set wishlist_id = $1 where id = $2", [w.rows[0].id, str(fd, "missing_part_id")]);
+      if (str(fd, "missing_part_id") && u.role === "Admin") await c.query("update missing_parts set wishlist_id = $1 where id = $2", [w.rows[0].id, str(fd, "missing_part_id")]);
       return w.rows[0].id;
     });
     await notify({
@@ -195,7 +194,7 @@ export async function requestRetire(_: ActionState, fd: FormData): Promise<Actio
         subject: `Approval needed: ${str(fd, "kind")} ${id}`,
         text: `${u.name} proposes: ${str(fd, "kind")} ${id}. Reason: ${str(fd, "reason")}`,
       });
-    return { message: r.status === "Pending" ? "Sent to the Owner for approval." : "Item retired.", revalidate: [path(id)] };
+    return { message: r.status === "Pending" ? "Sent to an Admin for approval." : "Item retired.", revalidate: [path(id)] };
   });
 }
 export async function decideRetire(_: ActionState, fd: FormData): Promise<ActionState> {

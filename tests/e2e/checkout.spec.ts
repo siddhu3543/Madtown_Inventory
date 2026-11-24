@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { login, U, PHOTO, sql } from "./helpers";
+import { login, U, PHOTO, sql, fillCheckout, fillCheckin } from "./helpers";
 
 test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-003; NFR-002)", () => {
   test("scan -> item page -> check out needs a photo -> with photo it saves", async ({ page }) => {
@@ -8,6 +8,10 @@ test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-
     await expect(page).toHaveURL(/\/items\/MTMH_103\?scanned=1/);
     await expect(page.getByTestId("primary-action")).toHaveText("Check out");
     await page.getByTestId("primary-action").click();
+    // nothing is pre-filled for the borrower any more: the browser stops an empty form
+    await page.getByTestId("checkout-submit").click();
+    await expect(page.getByTestId("checked-out")).toHaveCount(0);
+    await fillCheckout(page, { borrower: "Test Team Member (me)" });
     await page.getByTestId("checkout-submit").click();
     await expect(page.getByTestId("form-error")).toContainText("needs at least one check-out photo");
     await page.getByTestId("photo-input-Check-out").setInputFiles(PHOTO);
@@ -22,6 +26,7 @@ test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-
   test("a second check-out of MTMH_103 is blocked", async ({ page }) => {
     await login(page, U.manager);
     await page.goto("/items/MTMH_103/checkout");
+    await fillCheckout(page, { borrower: "Anand (me)" });
     await page.getByTestId("photo-input-Check-out").setInputFiles(PHOTO);
     await page.waitForTimeout(500);
     await page.getByTestId("checkout-submit").click();
@@ -33,7 +38,7 @@ test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-
     await page.goto("/items/MTMH_103");
     await expect(page.getByTestId("primary-action")).toHaveText("Check in");
     await page.getByTestId("primary-action").click();
-    await page.getByTestId("condition-in").selectOption("Bad condition");
+    await fillCheckin(page, { condition: "Bad condition", notes: "Returned with a cracked hood" });
     await page.getByTestId("photo-input-Check-in").setInputFiles(PHOTO);
     await page.waitForTimeout(500);
     await page.getByRole("button", { name: "Check in", exact: true }).click();
@@ -59,10 +64,12 @@ test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-
   test("AC-CHK-03 through the UI: 5 of MTMH_141 then 2 more blocked", async ({ page }) => {
     await login(page, U.team);
     await page.goto("/items/MTMH_141/checkout");
+    await fillCheckout(page, { borrower: "Test Team Member (me)" });
     await page.getByTestId("quantity").fill("5");
     await page.getByTestId("checkout-submit").click();
     await expect(page.getByTestId("checked-out")).toBeVisible();
     await page.goto("/items/MTMH_141/checkout");
+    await fillCheckout(page, { borrower: "Test Team Member (me)" });
     await page.getByTestId("quantity").fill("2");
     await page.getByTestId("checkout-submit").click();
     await expect(page.getByTestId("form-error")).toContainText("only 1 of 2");
@@ -71,6 +78,7 @@ test.describe.serial("check-out / check-in on a phone (AC-CHK-01, 02, 04; FR-QR-
   test("AC-CHK-05: transfer Anand -> Chiru keeps one chain of custody", async ({ page }) => {
     await login(page, U.manager);
     await page.goto("/items/MTMH_164/checkout");
+    await fillCheckout(page, { borrower: "Anand (me)" });
     await page.getByTestId("checkout-submit").click();
     await expect(page.getByTestId("checked-out")).toBeVisible();
     await page.getByTestId("transfer-to").selectOption({ label: "Chiru" });

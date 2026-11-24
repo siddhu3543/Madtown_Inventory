@@ -8,7 +8,7 @@ export const metadata = { title: "Print labels" };
 
 /** SCR-11 / FR-QR-004: printable QR label sheet with ID and name, 25 mm × 25 mm labels; FR-QR-005 pouch/case labels. */
 export default async function Labels({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const u = await requireUser(["Owner", "Manager"]);
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   const ids = sp.ids ? parseIdList(sp.ids) : [];
   const kitIds = sp.kits

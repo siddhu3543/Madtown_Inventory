@@ -2,8 +2,8 @@
 import { requireUser } from "@/lib/auth";
 import { withUser } from "@/lib/db";
 import { act, str, num, bool, type ActionState } from "@/lib/actions";
+import { checkoutFields } from "@/lib/checkout-form";
 import { checkout } from "@/lib/services/loans";
-import { fromIstInput } from "@/lib/format";
 
 export async function createKit(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
@@ -49,17 +49,7 @@ export async function updateKitItem(_: ActionState, fd: FormData): Promise<Actio
 export async function kitCheckout(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
     const u = await requireUser();
-    const r = await checkout(u, {
-      kit_id: str(fd, "kit_id"),
-      borrower_person_id: str(fd, "borrower_person_id") || u.personId,
-      purpose: str(fd, "purpose") || null,
-      due_at: fromIstInput(str(fd, "due_at")),
-      condition_out: str(fd, "condition_out") || null,
-      photo_ids: fd.getAll("photo_ids").map(String),
-      override_reason: str(fd, "override_reason") || null,
-      ack_reservation: bool(fd, "ack_reservation"),
-      client_uuid: str(fd, "client_uuid") || null,
-    });
+    const r = await checkout(u, checkoutFields(fd));
     return { redirectTo: `/loans/${r.loan_id}?new=1` };
   });
 }

@@ -27,9 +27,15 @@ export function ActionForm({
 }) {
   const [state, formAction] = useActionState(action, null);
   const ref = useRef<HTMLFormElement>(null);
+  const allowReset = useRef(false);
+  useKeepInput(ref, allowReset);
   const [dismissed, setDismissed] = useState<State>(null);
   useEffect(() => {
-    if (state?.ok && resetOnSuccess) ref.current?.reset();
+    if (state?.ok && resetOnSuccess) {
+      allowReset.current = true;
+      ref.current?.reset();
+      allowReset.current = false;
+    }
     if (state) onResult?.(state);
   }, [state, resetOnSuccess, onResult]);
   useEffect(() => {
@@ -59,6 +65,24 @@ export function ActionForm({
       )}
     </form>
   );
+}
+
+/**
+ * React 19 clears a form after every server action (its commit calls form.reset()), so a server-side error such as
+ * "needs a check-out photo" wiped everything the person had typed. The native reset event is cancelable; React's own
+ * onReset does not run during its commit, so this listens on the element itself. `allow` lets a form clear itself
+ * deliberately (resetOnSuccess).
+ */
+export function useKeepInput(ref: React.RefObject<HTMLFormElement | null>, allow?: React.RefObject<boolean>) {
+  useEffect(() => {
+    const form = ref.current;
+    if (!form) return;
+    const keep = (e: Event) => {
+      if (!allow?.current) e.preventDefault();
+    };
+    form.addEventListener("reset", keep);
+    return () => form.removeEventListener("reset", keep);
+  }, [ref, allow]);
 }
 
 /** Submit button with pending state. `confirm` opens an in-page confirmation dialog before submitting. */

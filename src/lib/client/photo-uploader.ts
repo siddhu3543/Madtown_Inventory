@@ -18,6 +18,7 @@ async function tryUpload(id: string, full: Blob, thumb: Blob): Promise<boolean> 
   const fd = new FormData();
   fd.append("file", full, `${id}.jpg`);
   fd.append("thumb", thumb, `${id}-thumb.jpg`);
+  let reason = "No connection — it will retry when you are back online.";
   try {
     const r = await fetch(`/api/photos/${id}/upload`, { method: "PUT", body: fd });
     if (r.ok) {
@@ -27,10 +28,15 @@ async function tryUpload(id: string, full: Blob, thumb: Blob): Promise<boolean> 
       window.dispatchEvent(new CustomEvent("mt-photo-uploaded", { detail: id }));
       return true;
     }
+    // show the server's reason instead of a silent "retrying" (the cause of failed uploads was invisible before)
+    const j = await r.json().catch(() => null);
+    reason = (j?.message as string | undefined) ?? `Upload failed (HTTP ${r.status}).`;
+    if (r.status === 413) reason = "The photo is too large to upload.";
   } catch {
     /* offline */
   }
   window.dispatchEvent(new CustomEvent("mt-photo-failed", { detail: id }));
+  window.dispatchEvent(new CustomEvent("mt-photo-error", { detail: { id, reason } }));
   return false;
 }
 

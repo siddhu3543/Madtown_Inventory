@@ -10,7 +10,7 @@ export const metadata = { title: "Import review" };
 /** SCR-13: results of the sheet import with warnings per row; Owner and Siddharth */
 export default async function ImportPage() {
   const u = await requireUser();
-  if (!(u.role === "Owner" || u.isDeveloper)) return <p>Owner and developer only.</p>;
+  if (!(u.role === "Admin" || u.isDeveloper)) return <p>Admins and the developer only.</p>;
   const d = await withUser(u.id, async (c) => ({
     runs: (await c.query("select * from import_runs order by started_at desc limit 30")).rows,
     rules: (await c.query("select * from import_mapping_rules where active order by created_at desc")).rows,
@@ -59,7 +59,7 @@ export default async function ImportPage() {
               <span>Mode</span>
               <select name="mode" className="input" defaultValue="dry-run">
                 <option value="dry-run">Preview (nothing is saved, report only)</option>
-                {u.role === "Owner" && <option value="apply">Import into the inventory</option>}
+                {u.role === "Admin" && <option value="apply">Import into the inventory</option>}
               </select>
             </label>
             <label className="flex items-center gap-2 self-end pb-2 text-sm">

@@ -3,6 +3,7 @@ import { withUser, withService, callWorkflow } from "../db";
 import type { CurrentUser } from "../auth";
 import { notify, notifySlack, managerEmails, managersAndOwner } from "./notifications";
 import { fmtDateTime } from "../format";
+import { AppError } from "../errors";
 
 type CheckoutResult = { loan_id: string; due_at: string; warnings: string[]; duplicate?: boolean };
 type CheckinResult = { loan_id: string; status: string; condition_worse: boolean; repair_ids: string[]; incident_ids: string[]; warnings: string[] };
@@ -21,7 +22,57 @@ async function loanSummary(loanId: string) {
   );
 }
 
-export async function checkout(u: CurrentUser, payload: Record<string, unknown>) {
+const text = (p: Record<string, unknown>, k: string) => (typeof p[k] === "string" ? (p[k] as string).trim() : p[k] == null ? "" : String(p[k]).trim());
+const need = (ok: unknown, code: string, message: string) => {
+  if (!ok) throw new AppError(code, message);
+};
+
+/**
+ * Borrower details are mandatory at check-out (2026-11-24): who (chosen, or a new borrower with name, email and phone),
+ * their email and phone on file (asked for when missing), purpose / project, due date and condition.
+ * Checked here for the form and offline sync alike, and again by the database.
+ */
+export function validateCheckout(p: Record<string, unknown>) {
+  const borrower = text(p, "borrower_person_id");
+  need(borrower, "BORROWER_REQUIRED", "Choose the borrower.");
+  if (borrower === "__new") {
+    need(text(p, "new_name"), "NAME_REQUIRED", "Enter the new borrower's full name.");
+    need(text(p, "new_email"), "EMAIL_REQUIRED", "Enter the new borrower's email address.");
+    need(text(p, "new_phone"), "PHONE_REQUIRED", "Enter the new borrower's phone number.");
+  }
+  need(text(p, "purpose"), "PURPOSE_REQUIRED", "Enter the purpose, project or shoot.");
+  need(text(p, "due_at"), "DUE_REQUIRED", "Enter when the item is due back.");
+  need(text(p, "condition_out"), "CONDITION_REQUIRED", "Choose the condition at check-out.");
+  if (p.quantity !== undefined && p.quantity !== null) need(Number(p.quantity) >= 1, "BAD_QTY", "Quantity must be at least 1.");
+}
+
+/** "__new" -> registers the borrower (name, email, phone); otherwise fills in an email / phone that is missing on file. */
+export async function prepareBorrower(u: CurrentUser, p: Record<string, unknown>): Promise<string> {
+  const borrower = text(p, "borrower_person_id");
+  if (borrower === "__new") {
+    const r = await withUser(u.id, (c) =>
+      callWorkflow<{ person_id: string }>(c, "register_borrower", { name: text(p, "new_name"), email: text(p, "new_email"), phone: text(p, "new_phone") }),
+    );
+    return r.person_id;
+  }
+  if (text(p, "contact_email") || text(p, "contact_phone"))
+    await withUser(u.id, (c) => callWorkflow(c, "complete_borrower_contact", { person_id: borrower, email: text(p, "contact_email"), phone: text(p, "contact_phone") }));
+  return borrower;
+}
+
+/** has_email / has_phone for each person (yes/no only; Staff never see the values) */
+export async function borrowerContactStatus(u: CurrentUser, personIds: string[]) {
+  if (!personIds.length) return {} as Record<string, { has_email: boolean; has_phone: boolean }>;
+  return withUser(u.id, async (c) => {
+    const r = await c.query("select id, app.borrower_contact_status(jsonb_build_object('person_id', id)) s from unnest($1::uuid[]) id", [personIds]);
+    return Object.fromEntries(r.rows.map((x) => [x.id, x.s])) as Record<string, { has_email: boolean; has_phone: boolean }>;
+  });
+}
+
+export async function checkout(u: CurrentUser, input: Record<string, unknown>) {
+  validateCheckout(input);
+  const payload: Record<string, unknown> = { ...input, borrower_person_id: await prepareBorrower(u, input) };
+  for (const k of ["new_name", "new_email", "new_phone", "contact_email", "contact_phone"]) delete payload[k];
   const r = await withUser(u.id, (c) => callWorkflow<CheckoutResult>(c, "checkout", payload));
   if (!r.duplicate) {
     const s = await loanSummary(r.loan_id);
@@ -30,7 +81,23 @@ export async function checkout(u: CurrentUser, payload: Record<string, unknown>)
   return r;
 }
 
+/**
+ * What the borrower reports at check-in is mandatory (2026-11-24): condition, return notes, an explicit yes/no on damage
+ * (with a description when yes) and, when anything is lost, where it was last seen.
+ */
+export function validateCheckin(p: Record<string, unknown>) {
+  need(text(p, "condition_in"), "CONDITION_REQUIRED", "Choose the condition at check-in.");
+  need(text(p, "notes"), "NOTES_REQUIRED", 'Enter the return notes (what the borrower said; write "No issues" if there were none).');
+  if (p.damage_answer !== undefined) need(["yes", "no"].includes(text(p, "damage_answer")), "DAMAGE_ANSWER_REQUIRED", "Answer whether there is any damage.");
+  if (p.damage) need(text(p, "damage_description"), "DAMAGE_DESCRIPTION_REQUIRED", "Describe the damage.");
+  if (p.missing_answer !== undefined) need(["yes", "no"].includes(text(p, "missing_answer")), "MISSING_ANSWER_REQUIRED", "Answer whether anything is missing.");
+  if (text(p, "missing_answer") === "yes") need(text(p, "missing_description"), "MISSING_DESCRIPTION_REQUIRED", "Describe what is missing.");
+  const lines = (p.lines as { lost?: number }[] | undefined) ?? [];
+  if (lines.some((l) => (l.lost ?? 0) > 0)) need(text(p, "lost_place"), "LOST_PLACE_REQUIRED", "Say where the lost item was last seen.");
+}
+
 export async function checkin(u: CurrentUser, payload: Record<string, unknown>) {
+  validateCheckin(payload);
   const r = await withUser(u.id, (c) => callWorkflow<CheckinResult>(c, "checkin", payload));
   const s = await loanSummary(r.loan_id);
   if (payload.damage || r.condition_worse || r.repair_ids.length) {
@@ -119,7 +186,7 @@ export async function getLoan(u: CurrentUser, id: string) {
       )
     ).rows;
     const reminders =
-      u.role === "Owner" || u.role === "Manager"
+      u.role === "Admin"
         ? (await c.query(`select event_code, status, recipients, intended_recipients, created_at from notifications_log where loan_id = $1 order by created_at`, [id])).rows
         : [];
     const chain = (
@@ -184,7 +251,7 @@ export async function personProfile(u: CurrentUser, personId: string) {
       await c.query(`select p.*, us.role, us.login_email, us.active as login_active from people p left join users us on us.person_id = p.id where p.id = $1`, [personId])
     ).rows[0];
     if (!person) return null;
-    const contact = u.role === "Owner" || u.role === "Manager" ? ((await c.query("select * from people_contacts where person_id = $1", [personId])).rows[0] ?? null) : null;
+    const contact = u.role === "Admin" ? ((await c.query("select * from people_contacts where person_id = $1", [personId])).rows[0] ?? null) : null;
     const loans = (
       await c.query(
         `select l.*, string_agg(ll.item_id || ' ' || i.name || case when ll.quantity > 1 then ' ×' || ll.quantity else '' end, ', ' order by ll.item_id) as items

@@ -10,7 +10,7 @@ export const metadata = { title: "People" };
 
 /** SCR-10 people list */
 export default async function People() {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const rows = await withUser(
     u.id,
     async (c) =>

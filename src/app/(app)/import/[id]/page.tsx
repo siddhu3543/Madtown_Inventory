@@ -6,7 +6,7 @@ import { fmtDateTime } from "@/lib/format";
 export const metadata = { title: "Import report" };
 export default async function Run({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ level?: string; code?: string }> }) {
   const u = await requireUser();
-  if (!(u.role === "Owner" || u.isDeveloper)) return <p>Owner and developer only.</p>;
+  if (!(u.role === "Admin" || u.isDeveloper)) return <p>Admins and the developer only.</p>;
   const { id } = await params;
   const sp = await searchParams;
   const d = await withUser(u.id, async (c) => ({

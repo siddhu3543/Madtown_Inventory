@@ -10,7 +10,7 @@ import { fmtDateTime, fmtDate } from "@/lib/format";
 export const metadata = { title: "Walkthrough" };
 /** SCR-19 + FR-AUD-008 not audited in 90 days */
 export default async function Walkthroughs() {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const [d, lk] = await Promise.all([
     withUser(u.id, async (c) => ({
       audits: (

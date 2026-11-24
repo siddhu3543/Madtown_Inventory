@@ -10,7 +10,7 @@ import { lookups } from "@/lib/services/items";
 export const metadata = { title: "Repairs" };
 /** SCR-15: open and closed maintenance events, schedule due list */
 export default async function Repairs() {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const [d, lk] = await Promise.all([
     withUser(u.id, async (c) => ({
       open: (

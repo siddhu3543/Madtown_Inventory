@@ -1,34 +1,46 @@
 /**
- * Section 9 permission matrix, mirrored for the UI so controls a role cannot use are hidden.
+ * Two roles (2026-11-24), mirrored for the UI so controls a role cannot use are hidden.
+ *   Admin — sees and does everything.
+ *   Staff — runs the check-out / check-in desk: find and scan items, check out to a borrower (adding a new
+ *           borrower if needed), check in, report damage / loss / missing parts, take the photos those need.
  * The database (RLS + workflow checks) is authoritative (NFR-004); never rely on this alone.
  */
 import type { CurrentUser } from "./auth";
 type U = Pick<CurrentUser, "role" | "financeVisible" | "isDeveloper">;
+const admin = (u: U) => u.role === "Admin";
+const anyone = (u: U) => u.role === "Admin" || u.role === "Staff";
+
 export const can = {
-  editItems: (u: U) => u.role === "Owner" || u.role === "Manager",
-  retireDirect: (u: U) => u.role === "Owner",
-  proposeRetire: (u: U) => u.role === "Manager",
-  deleteItem: (u: U) => u.role === "Owner",
-  checkoutSelf: (u: U) => u.role !== "Read-only",
-  checkoutOthers: (u: U) => u.role === "Owner" || u.role === "Manager",
-  checkin: (u: U) => u.role !== "Read-only",
-  override: (u: U) => u.role === "Owner" || u.role === "Manager",
-  report: (u: U) => u.role !== "Read-only",
-  uploadPhotos: (u: U) => u.role !== "Read-only",
-  repairs: (u: U) => u.role === "Owner" || u.role === "Manager",
-  proposeBuy: (u: U) => u.role !== "Read-only",
-  approveBuy: (u: U) => u.role === "Owner",
-  orders: (u: U) => u.role === "Owner" || u.role === "Manager",
-  viewOrders: (u: U) => u.role !== "Team member",
-  walkthrough: (u: U) => u.role === "Owner" || u.role === "Manager",
-  walkthroughAssist: (u: U) => u.role !== "Read-only",
-  applyCorrections: (u: U) => u.role === "Owner" || u.role === "Manager",
-  globalAudit: (u: U) => u.role === "Owner",
-  itemAudit: (u: U) => u.role === "Owner" || u.role === "Manager",
-  settings: (u: U) => u.role === "Owner",
-  labels: (u: U) => u.role === "Owner" || u.role === "Manager",
-  importReview: (u: U) => u.role === "Owner" || u.isDeveloper,
-  unsorted: (u: U) => u.role === "Owner" || u.role === "Manager" || u.isDeveloper,
-  finance: (u: U) => u.financeVisible,
-  people: (u: U) => u.role === "Owner" || u.role === "Manager",
+  // ---- the desk: Staff and Admin
+  checkoutSelf: anyone,
+  checkoutOthers: anyone,
+  checkin: anyone,
+  report: anyone,
+  uploadPhotos: anyone,
+  // ---- Admin only
+  admin,
+  editItems: admin,
+  retireDirect: admin,
+  deleteItem: admin,
+  override: admin,
+  repairs: admin,
+  proposeBuy: admin,
+  approveBuy: admin,
+  orders: admin,
+  viewOrders: admin,
+  walkthrough: admin,
+  walkthroughAssist: admin,
+  applyCorrections: admin,
+  globalAudit: admin,
+  itemAudit: admin,
+  settings: admin,
+  labels: admin,
+  kits: admin,
+  reservations: admin,
+  reports: admin,
+  lostAndFound: admin,
+  people: admin,
+  importReview: (u: U) => admin(u) || u.isDeveloper,
+  unsorted: (u: U) => admin(u) || u.isDeveloper,
+  finance: (u: U) => admin(u) && u.financeVisible,
 };

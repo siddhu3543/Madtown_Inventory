@@ -19,7 +19,7 @@ describe("AC-LOAN-01: due-soon, due-today, daily overdue, escalation on day 3", 
   let loanId: string;
   it("sends due-soon 24 h before, once", async () => {
     const chiru = await personId("Chiru");
-    await svc("insert into people_contacts(person_id, email) values ($1, 'chiru.freelance@example.com')", [chiru]);
+    await svc("insert into people_contacts(person_id, email) values ($1, 'chiru.freelance@example.com') on conflict (person_id) do update set email = excluded.email", [chiru]);
     const item = await newItem(U.manager, { name: "Reminder Stand", type: "Stand" });
     const r = await as(U.manager).wf<{ loan_id: string }>("checkout", { item_id: item, borrower_person_id: chiru, condition_out: "Good", due_at: "2027-01-12T12:30:00Z" });
     loanId = r.loan_id;

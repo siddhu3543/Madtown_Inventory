@@ -3,9 +3,10 @@ import { requireUser } from "@/lib/auth";
 import { withUser, callWorkflow } from "@/lib/db";
 import { act, str, num, bool, type ActionState } from "@/lib/actions";
 import { provisionAuthUser } from "@/lib/auth/provision";
+import { AppError } from "@/lib/errors";
 import { runMirror } from "@/lib/services/mirror";
 
-const owner = () => requireUser(["Owner"]);
+const owner = () => requireUser(["Admin"]);
 
 export async function saveType(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
@@ -23,12 +24,10 @@ export async function saveType(_: ActionState, fd: FormData): Promise<ActionStat
 /** FR-CAT-003: Managers add a value; the Owner approves */
 export async function proposeValue(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
-    const u = await requireUser(["Owner", "Manager"]);
+    const u = await requireUser(["Admin"]);
     const table = str(fd, "kind") === "subtype" ? "item_subtypes" : "item_types";
-    await withUser(u.id, (c) =>
-      c.query(`insert into ${table}(name, status, proposed_by) values ($1, $2, auth.uid())`, [str(fd, "name"), u.role === "Owner" ? "Approved" : "Proposed"]),
-    );
-    return { message: u.role === "Owner" ? "Added." : "Proposed — the Owner will approve it.", revalidate: ["/settings"] };
+    await withUser(u.id, (c) => c.query(`insert into ${table}(name, status, proposed_by) values ($1, $2, auth.uid())`, [str(fd, "name"), "Approved"]));
+    return { message: "Added.", revalidate: ["/settings"] };
   });
 }
 export async function decideValue(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -64,7 +63,13 @@ export async function saveSetting(_: ActionState, fd: FormData): Promise<ActionS
     return { message: `Saved ${str(fd, "key")}.`, revalidate: ["/settings"] };
   });
 }
-/** Users and roles (SCR-22). Owner only. Siddharth: Read-only + developer flag (A1). */
+const ROLES = ["Admin", "Staff"];
+function role(fd: FormData) {
+  const r = str(fd, "role");
+  if (!ROLES.includes(r)) throw new AppError("BAD_ROLE", "Role must be Admin or Staff");
+  return r;
+}
+/** Users and roles (SCR-22). Admin only. Two roles: Admin (everything) and Staff (check-out / check-in desk). */
 export async function addUser(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
     const u = await owner();
@@ -78,9 +83,9 @@ export async function addUser(_: ActionState, fd: FormData): Promise<ActionState
         authId,
         p.rows[0].id,
         email,
-        str(fd, "role"),
+        role(fd),
         bool(fd, "developer"),
-        bool(fd, "developer") ? "off" : "default",
+        "default",
       ]);
     });
     return { message: `Login created for ${email}.`, revalidate: ["/settings"] };
@@ -90,10 +95,10 @@ export async function updateUser(_: ActionState, fd: FormData): Promise<ActionSt
   return act(async () => {
     const u = await owner();
     await withUser(u.id, (c) =>
-      c.query("update users set role = $2, finance_access = $3, is_developer = $4, session_version = session_version + case when role <> $2 then 1 else 0 end where id = $1", [
+      // a role change ends that person's sessions at once (session_version), so new limits apply immediately
+      c.query("update users set role = $2, is_developer = $3, session_version = session_version + case when role <> $2 then 1 else 0 end where id = $1", [
         str(fd, "id"),
-        str(fd, "role"),
-        str(fd, "finance_access"),
+        role(fd),
         bool(fd, "developer"),
       ]),
     );
@@ -113,7 +118,7 @@ export async function deactivate(_: ActionState, fd: FormData): Promise<ActionSt
 }
 export async function addLocation(_: ActionState, fd: FormData): Promise<ActionState> {
   return act(async () => {
-    const u = await requireUser(["Owner", "Manager"]);
+    const u = await requireUser(["Admin"]);
     await withUser(u.id, (c) => c.query("insert into locations(name, location_type) values ($1,$2)", [str(fd, "name"), str(fd, "location_type")]));
     return { revalidate: ["/settings"] };
   });

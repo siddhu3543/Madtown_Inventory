@@ -9,6 +9,8 @@ import { PageHeader, Section, Badge, Cond, KV, ItemLink, Flag, Empty } from "@/c
 import { Thumb } from "@/components/Thumb";
 import { ActionForm, Submit } from "@/components/ActionForm";
 import { PhotoCapture } from "@/components/PhotoCapture";
+import { CheckinDeclarations } from "@/components/CheckinDeclarations";
+import { Req } from "@/components/CheckoutForm";
 import { fmtDateTime, toIstInput } from "@/lib/format";
 import * as A from "./actions";
 
@@ -264,8 +266,14 @@ export default async function LoanPage({ params, searchParams }: { params: Promi
               </label>
             )}
             <label className="field">
-              <span>Condition at check-in</span>
-              <select name="condition_in" className="input" defaultValue={loan.condition_out ?? "Good"} data-testid="condition-in">
+              <span>
+                Condition at check-in <Req />
+                {loan.condition_out && <span className="muted font-normal"> — at check-out: {loan.condition_out}</span>}
+              </span>
+              <select name="condition_in" className="input" defaultValue="" required data-testid="condition-in">
+                <option value="" disabled>
+                  Check the item and choose…
+                </option>
                 {lk.conditions.map((c) => (
                   <option key={c.name}>{c.name}</option>
                 ))}
@@ -274,38 +282,16 @@ export default async function LoanPage({ params, searchParams }: { params: Promi
             {outstanding.map((l) => (
               <PhotoCapture key={l.id} itemId={l.item_id} kind="Check-in" required={!!photoReq(l.type)} label={`Check-in photo of ${l.item_id}`} />
             ))}
-            <fieldset className="card p-3">
-              <legend className="font-semibold">Accessories / missing parts</legend>
-              <p className="muted text-sm">Confirm chargers, cables, caps and cases are back. If something is missing, record it:</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <select name="missing_item_id" className="input">
-                  {lines.map((l) => (
-                    <option key={l.id} value={l.item_id}>
-                      {l.item_id} {l.name}
-                    </option>
-                  ))}
-                </select>
-                <input name="missing_description" className="input" placeholder="e.g. charging cable missing" />
-              </div>
-            </fieldset>
-            <label className="flex items-center gap-2 font-semibold">
-              <input type="checkbox" name="damage" data-testid="damage" /> Damage reported — open a repair (status becomes In repair)
-            </label>
+            <CheckinDeclarations lines={lines.map((l) => ({ item_id: l.item_id, name: l.name }))} />
             <label className="field">
-              <span>Damage / notes</span>
-              <textarea name="damage_description" className="input" rows={2} />
-            </label>
-            <label className="field">
-              <span>Notes</span>
-              <input name="notes" className="input" />
-            </label>
-            <label className="field">
-              <span>If anything is lost: where last seen</span>
-              <input name="lost_place" className="input" />
+              <span>
+                If anything is lost: where it was last seen <span className="muted font-normal">(required when a Lost quantity is entered)</span>
+              </span>
+              <input name="lost_place" className="input" data-testid="lost-place" />
             </label>
             {can.override(u) && (
               <details>
-                <summary className="cursor-pointer font-semibold">Back-date this check-in (Manager)</summary>
+                <summary className="cursor-pointer font-semibold">Back-date this check-in (Admin)</summary>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   <label className="field">
                     <span>Returned at (IST)</span>

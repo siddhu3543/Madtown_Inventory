@@ -12,8 +12,8 @@
 5. Database role for the app: use the pooler connection (`DATABASE_URL`) of a role that can `SET ROLE authenticated` and `service_role`, e.g.
    `create role app_server login password '…' noinherit; grant authenticated, service_role to app_server;`. Never use the service-role JWT in the app.
 6. Settings to set in production: `split_enabled=false` until D-17 is approved; confirm every OPEN item in docs/OPEN_QUESTIONS.md.
-7. First Owner login: insert Naveen's `users` row (Settings → Users needs one Owner first):
-   `insert into public.people(name, person_type) values ('Naveen Pinapatruni','Staff'); insert into public.users(id, person_id, login_email, role) select '<auth uid>', id, 'naveen@madtown.in', 'Owner' from public.people where name='Naveen Pinapatruni';`
+7. First Admin login: insert Naveen's `users` row (Settings → Users needs one Admin first; roles are Admin and Staff):
+   `insert into public.people(name, person_type) values ('Naveen Pinapatruni','Staff'); insert into public.users(id, person_id, login_email, role) select '<auth uid>', id, 'naveen@madtown.in', 'Admin' from public.people where name='Naveen Pinapatruni';` (use role `'Admin'`)
 
 ## 2. Google Drive and Sheets
 - Service account (no domain-wide delegation needed) added as Content manager on the shared drive and Editor on the mirror spreadsheet.
@@ -32,5 +32,5 @@
    forward fix migration, or restore from the pre-release backup into a new project and switch `DATABASE_URL` (docs/BACKUP_RESTORE.md).
 
 ## 5. Production import (MIG-015)
-Dry-run in Import review on staging with the real CSVs until Naveen signs off the report → in production, Owner runs **FINAL** import once →
+Dry-run in Import review on staging with the real CSVs until Naveen signs off the report → in production, an Admin runs the import →
 2-week parallel run, app is the only writer, sheet becomes the mirror → lock the old sheet (view only, section 11.1).

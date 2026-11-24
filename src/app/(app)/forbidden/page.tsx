@@ -8,7 +8,7 @@ export default function Forbidden() {
         <Lock size={24} aria-hidden />
       </span>
       <h1 className="mt-4 text-xl font-semibold">Your role cannot open this page.</h1>
-      <p className="muted mt-2">Permissions follow section 9 of the requirements. Ask the Owner if you need access.</p>
+      <p className="muted mt-2">Ask an Admin if you need access.</p>
       <Link href="/" className="btn btn-primary mt-5">
         Back to dashboard
       </Link>

@@ -18,7 +18,7 @@ beforeAll(async () => {
   });
 });
 afterAll(closePool);
-const owner = () => ({ ...U.owner, role: "Owner" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 });
+const owner = () => ({ ...U.owner, role: "Admin" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 });
 
 describe("remaining requirements", () => {
   it("FR-KIT-006: MTMH_119 battery and charger recorded as detached with Anand, parent not checked out", async () => {
@@ -60,7 +60,7 @@ describe("remaining requirements", () => {
   });
   it("FR-AUD-007: quick note per item during a walkthrough", async () => {
     const au = (await as(U.manager).q<{ id: string }>("insert into audits(scope_kind, started_by) values ('All', auth.uid()) returning id"))[0].id;
-    await as(U.team).wf("record_audit_line", { audit_id: au, item_id: "MTMH_101", result: "Condition changed", note: "Strap frayed" });
+    await as(U.manager).wf("record_audit_line", { audit_id: au, item_id: "MTMH_101", result: "Condition changed", note: "Strap frayed" }); // walkthroughs: Admin only
     expect((await svc("select note from audit_lines where audit_id=$1", [au]))[0].note).toBe("Strap frayed");
   });
   it("FR-PHO-008: storage adapter round-trip (local implementation of the interface)", async () => {

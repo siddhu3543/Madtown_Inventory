@@ -5,7 +5,7 @@ import { ItemForm } from "@/components/ItemForm";
 import { create } from "./actions";
 export const metadata = { title: "Add item" };
 export default async function NewItem() {
-  const u = await requireUser(["Owner", "Manager"]);
+  const u = await requireUser(["Admin"]);
   const [lk, items] = await Promise.all([lookups(u), listItems(u, {})]);
   return (
     <>

@@ -48,7 +48,7 @@ export async function reminders({ now }: Ctx) {
     for (const l of loans) {
       const due = new Date(l.due_at);
       const recips = await withService(async (c) => [await personEmail(c, l.borrower_person_id), await userEmail(c, l.checked_out_by)].filter(Boolean) as string[]);
-      const managers = recips.length ? recips : await withService((c) => emailsForRoles(c, ["Manager"]));
+      const managers = recips.length ? recips : await withService((c) => emailsForRoles(c, ["Admin"]));
       const send = async (code: string, dedupe: string, subject: string, text: string) => {
         const s = await notify({ code, dedupe, to: managers, loanId: l.id, subject, text });
         if (s !== "skipped") await withService((c) => c.query("update loans set reminder_count = reminder_count + 1 where id = $1", [l.id]));
@@ -118,7 +118,7 @@ export async function weeklyMissing({ now }: Ctx) {
     const s = await notify({
       code: "NTF-007",
       dedupe: `NTF-007:${isoWeek(now)}`,
-      to: await withService((c) => emailsForRoles(c, ["Manager"])),
+      to: await withService((c) => emailsForRoles(c, ["Admin"])),
       subject: `Still missing: ${items.length} item(s)`,
       text: items.map((i) => `- ${i.id} ${i.name}${i.missing_qty > 1 ? ` (${i.missing_qty} units)` : ""}`).join("\n"),
     });
@@ -146,7 +146,7 @@ export async function repairsOverdue({ now }: Ctx) {
         (await notify({
           code: "NTF-008",
           dedupe: `NTF-008:${r.id}`,
-          to: await withService((c) => emailsForRoles(c, ["Manager"])),
+          to: await withService((c) => emailsForRoles(c, ["Admin"])),
           itemId: r.item_id,
           subject: `Repair overdue: ${r.item_id} ${r.name}`,
           text: `${r.item_id} ${r.name} was expected back from ${r.vendor ?? "the vendor"} on ${fmtDate(r.expected_back)}.`,
@@ -177,7 +177,7 @@ export async function upkeepDue({ now }: Ctx) {
         (await notify({
           code: "NTF-009",
           dedupe: `NTF-009:${r.id}:${String(r.next_due).slice(0, 10)}`,
-          to: await withService((c) => emailsForRoles(c, ["Manager"])),
+          to: await withService((c) => emailsForRoles(c, ["Admin"])),
           subject: `Service due: ${r.target}${r.name ? ` ${r.name}` : ""}`,
           text: `Service or upkeep for ${r.target} is due on ${fmtDate(r.next_due)}.`,
         })) !== "skipped"
@@ -208,7 +208,7 @@ export async function ordersOverdue({ now }: Ctx) {
         (await notify({
           code: "NTF-011",
           dedupe: `NTF-011:late:${r.id}`,
-          to: [...r.proposers, ...(await withService((c) => emailsForRoles(c, ["Manager"])))],
+          to: [...r.proposers, ...(await withService((c) => emailsForRoles(c, ["Admin"])))],
           subject: `Order overdue: ${r.vendor} ${r.order_ref}`,
           text: `Order ${r.order_ref} from ${r.vendor} was expected on ${fmtDate(r.expected_delivery)} and is not delivered.`,
         })) !== "skipped"
@@ -252,7 +252,7 @@ export async function weeklySummary({ now }: Ctx, force = false) {
     const s = await notify({
       code: "NTF-012",
       dedupe: `NTF-012:${ist.dateKey}`,
-      to: await withService((c) => emailsForRoles(c, ["Owner"])),
+      to: await withService((c) => emailsForRoles(c, ["Admin"])),
       subject: `Inventory weekly summary — ${fmtDate(now)}`,
       text,
       noCc: true,

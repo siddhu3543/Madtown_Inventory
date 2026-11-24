@@ -23,7 +23,7 @@ export async function resolve(_: ActionState, fd: FormData): Promise<ActionState
         subject: "Write-off awaiting approval",
         text: `${u.name} proposes writing off an item: ${str(fd, "note")}`,
       });
-    return { message: r.status === "Pending write-off" ? "Sent to the Owner for write-off approval." : "Resolved.", revalidate: ["/lost"] };
+    return { message: r.status === "Pending write-off" ? "Sent to an Admin for write-off approval." : "Resolved.", revalidate: ["/lost"] };
   });
 }
 export async function decide(_: ActionState, fd: FormData): Promise<ActionState> {

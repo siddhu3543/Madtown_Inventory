@@ -9,7 +9,7 @@ import { decide, verify, addOption, linkItems, setStatus } from "../actions";
 import { fmtDateTime, fmtRs } from "@/lib/format";
 export const metadata = { title: "To-buy line" };
 export default async function Line({ params }: { params: Promise<{ id: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const { id } = await params;
   const d = await withUser(u.id, async (c) => ({
     w: (

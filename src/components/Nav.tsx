@@ -7,7 +7,7 @@ type G = { label: string; links: L[] };
 
 /**
  * Navigation structure. Every existing route is kept; only grouping and icons are new.
- * Role-based visibility (`show`) is unchanged from the previous flat list.
+ * Staff see only the desk (dashboard, items, kits, loans); every other link is Admin-only (`show`).
  */
 const GROUPS: G[] = [
   { label: "Overview", links: [{ href: "/", label: "Dashboard", icon: "dashboard" }] },
@@ -18,30 +18,30 @@ const GROUPS: G[] = [
       { href: "/kits", label: "Kits", icon: "kits", phase: 2 },
       { href: "/labels", label: "Labels", icon: "labels", show: (u) => can.labels(u) },
       { href: "/unsorted", label: "Unsorted", icon: "unsorted", show: (u) => can.unsorted(u) },
-      { href: "/lost", label: "Lost & found", icon: "lost" },
+      { href: "/lost", label: "Lost & found", icon: "lost", show: (u) => can.lostAndFound(u) },
     ],
   },
   {
     label: "Operations",
     links: [
       { href: "/loans", label: "Loans", icon: "loans" },
-      { href: "/people", label: "People", icon: "people" },
-      { href: "/reservations", label: "Reservations", icon: "reservations", phase: 2 },
-      { href: "/repairs", label: "Repairs", icon: "repairs", phase: 2 },
-      { href: "/walkthrough", label: "Walkthrough", icon: "walkthrough", phase: 2 },
+      { href: "/people", label: "People", icon: "people", show: (u) => can.people(u) },
+      { href: "/reservations", label: "Reservations", icon: "reservations", phase: 2, show: (u) => can.reservations(u) },
+      { href: "/repairs", label: "Repairs", icon: "repairs", phase: 2, show: (u) => can.repairs(u) },
+      { href: "/walkthrough", label: "Walkthrough", icon: "walkthrough", phase: 2, show: (u) => can.walkthrough(u) },
     ],
   },
   {
     label: "Purchasing",
     links: [
-      { href: "/to-buy", label: "To-buy", icon: "tobuy", phase: 2 },
+      { href: "/to-buy", label: "To-buy", icon: "tobuy", phase: 2, show: (u) => can.proposeBuy(u) },
       { href: "/orders", label: "Orders", icon: "orders", phase: 2, show: (u) => can.viewOrders(u) },
     ],
   },
   {
     label: "Insights",
     links: [
-      { href: "/reports", label: "Reports", icon: "reports" },
+      { href: "/reports", label: "Reports", icon: "reports", show: (u) => can.reports(u) },
       { href: "/audit-log", label: "Audit log", icon: "audit", show: (u) => can.globalAudit(u) },
     ],
   },

@@ -14,7 +14,8 @@ import {
   verifySession,
 } from "./session";
 
-export type Role = "Owner" | "Manager" | "Team member" | "Read-only";
+/** Two roles (2026-11-24): Admin sees and does everything; Staff run the check-out / check-in desk. */
+export type Role = "Admin" | "Staff";
 
 export type CurrentUser = {
   id: string;

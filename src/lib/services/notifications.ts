@@ -61,13 +61,13 @@ export async function emailsForRoles(c: Db, roles: string[]): Promise<string[]> 
   return (await c.query("select login_email from users where active and role = any($1)", [roles])).rows.map((r) => r.login_email);
 }
 export async function managerEmails() {
-  return withService((c) => emailsForRoles(c, ["Manager"]));
+  return withService((c) => emailsForRoles(c, ["Admin"]));
 }
 export async function managersAndOwner() {
-  return withService((c) => emailsForRoles(c, ["Manager", "Owner"]));
+  return withService((c) => emailsForRoles(c, ["Admin"]));
 }
 export async function ownerEmails() {
-  return withService((c) => emailsForRoles(c, ["Owner"]));
+  return withService((c) => emailsForRoles(c, ["Admin"]));
 }
 export async function escalationEmails() {
   return withService(async (c) =>

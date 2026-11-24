@@ -9,7 +9,7 @@ import { fmtDate } from "@/lib/format";
 export const metadata = { title: "Lost and found" };
 /** SCR-16: Lost and Missing items, incidents, resolution actions (FR-LST) */
 export default async function Lost() {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const d = await withUser(u.id, async (c) => ({
     lost: (await c.query("select * from items_v where flag_lost order by id")).rows,
     missing: (await c.query("select * from items_v where flag_missing order by id")).rows,
@@ -109,7 +109,7 @@ export default async function Lost() {
                         ))}
                       </select>
                       <Submit>Resolve</Submit>
-                      <p className="muted text-sm">Found? Open the item and use Mark as found. Write-off needs the Owner.</p>
+                      <p className="muted text-sm">Found? Open the item and use Mark as found. Write-off needs an Admin.</p>
                     </ActionForm>
                   </details>
                 )}

@@ -3,17 +3,18 @@
  * Names are those in the sheet/briefing (section 2); emails are placeholders on madtown.in and
  * must be replaced by the real accounts Naveen approves (A3 "Add other named testers only with
  * Naveen's approval"). Borrowers without login get no contact data here.
+ * Login accounts get an obviously fake placeholder phone (+91 90000 0000N) so staging can check out to them now that the
+ * borrower's email and phone are mandatory (2026-11-24); their email is the login email.
  */
 import bcrypt from "bcryptjs";
 import type { PoolClient } from "pg";
 
 export const SEED_USERS = [
-  { key: "owner", name: "Naveen Pinapatruni", email: "naveen@madtown.in", role: "Owner", type: "Staff", developer: false },
-  { key: "manager", name: "Anand", email: "anand@madtown.in", role: "Manager", type: "Staff", developer: false },
-  { key: "team", name: "Test Team Member", email: "team.tester@madtown.in", role: "Team member", type: "Staff", developer: false },
-  { key: "team2", name: "Second Team Member", email: "team.tester2@madtown.in", role: "Team member", type: "Staff", developer: false },
-  { key: "readonly", name: "Accountant (test)", email: "accounts.tester@madtown.in", role: "Read-only", type: "Staff", developer: false },
-  { key: "dev", name: "Siddharth", email: "siddharth.dev@madtown.in", role: "Read-only", type: "Staff", developer: true },
+  { key: "owner", name: "Naveen Pinapatruni", email: "naveen@madtown.in", role: "Admin", type: "Staff", developer: false },
+  { key: "manager", name: "Anand", email: "anand@madtown.in", role: "Admin", type: "Staff", developer: false },
+  { key: "team", name: "Test Team Member", email: "team.tester@madtown.in", role: "Staff", type: "Staff", developer: false },
+  { key: "team2", name: "Second Team Member", email: "team.tester2@madtown.in", role: "Staff", type: "Staff", developer: false },
+  { key: "dev", name: "Siddharth", email: "siddharth.dev@madtown.in", role: "Staff", type: "Staff", developer: true },
 ] as const;
 
 // Borrowers without login (section 2). Kittu: Manager proposed but unconfirmed (D-26) -> person only.
@@ -46,6 +47,10 @@ export async function seedPeopleAndUsers(c: PoolClient, password: string): Promi
        values ($1, $2, $3, $4, $5, $6) on conflict (id) do update set role = excluded.role, active = true`,
       [au.rows[0].id, p.rows[0].id, u.email, u.role, u.developer, u.developer ? "off" : "default"],
     );
+    await c.query(`insert into people_contacts(person_id, phone) values ($1, $2) on conflict (person_id) do update set phone = coalesce(people_contacts.phone, excluded.phone)`, [
+      p.rows[0].id,
+      `+91 90000 0000${SEED_USERS.indexOf(u) + 1}`,
+    ]);
     out[u.key] = { id: au.rows[0].id, personId: p.rows[0].id, email: u.email, role: u.role, name: u.name };
   }
   for (const p of SEED_PEOPLE) {

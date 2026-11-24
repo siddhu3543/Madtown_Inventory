@@ -9,7 +9,7 @@ import { lookups } from "@/lib/services/items";
 export const metadata = { title: "Reservations" };
 /** SCR-23 reservations calendar (Phase 2; Google Calendar sync is Phase 3) */
 export default async function Reservations() {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const [rows, lk] = await Promise.all([
     withUser(
       u.id,
@@ -46,7 +46,7 @@ export default async function Reservations() {
                   <Link href={`/reports/pick-list?shoot=${encodeURIComponent(r.shoot)}`} className="ml-2">
                     pick list
                   </Link>
-                  {(u.role === "Owner" || u.role === "Manager" || r.created_by === u.id) && (
+                  {(u.role === "Admin" || r.created_by === u.id) && (
                     <ActionForm action={cancelReservation} className="inline">
                       <input type="hidden" name="id" value={r.id} />
                       <input type="hidden" name="item_id" value={r.item_id ?? ""} />
@@ -59,14 +59,14 @@ export default async function Reservations() {
           </section>
         ))
       )}
-      {u.role !== "Read-only" && (
+      {u.role === "Admin" && (
         <div className="card mt-4 p-4">
           <h2 className="mb-2 font-bold">Reserve a kit</h2>
           <ActionForm action={reserve} className="grid gap-2 sm:grid-cols-3" resetOnSuccess>
             <input type="hidden" name="item_id" value="" />
             <input name="kit_id" className="input" placeholder="KIT_001" required />
             <input name="shoot" className="input" placeholder="Shoot" required />
-            {u.role === "Owner" || u.role === "Manager" ? (
+            {u.role === "Admin" ? (
               <select name="person_id" className="input">
                 {lk.people
                   .filter((p) => !p.is_madtown)

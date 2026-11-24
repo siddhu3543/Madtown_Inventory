@@ -7,7 +7,7 @@ import { fmtDate, fmtRs } from "@/lib/format";
 export const metadata = { title: "Orders" };
 /** SCR-18 incoming orders and delivery status */
 export default async function Orders() {
-  const u = await requireUser(["Owner", "Manager", "Read-only"]);
+  const u = await requireUser(["Admin"]);
   const rows = await withUser(
     u.id,
     async (c) =>

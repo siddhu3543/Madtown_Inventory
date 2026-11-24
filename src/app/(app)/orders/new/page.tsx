@@ -5,7 +5,7 @@ import { ActionForm, Submit } from "@/components/ActionForm";
 import { createOrder } from "../actions";
 export const metadata = { title: "Record order" };
 export default async function NewOrder({ searchParams }: { searchParams: Promise<{ wishlist?: string }> }) {
-  const u = await requireUser(["Owner", "Manager"]);
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   const approved = await withUser(u.id, async (c) => (await c.query("select id, item_description from wishlist_items where status = 'Approved' order by approved_at desc")).rows);
   const pre = approved.find((w) => w.id === sp.wishlist);

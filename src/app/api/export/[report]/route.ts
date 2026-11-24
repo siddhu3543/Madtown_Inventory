@@ -14,6 +14,7 @@ const csv = (name: string, rows: Record<string, unknown>[]) =>
 /** FR-RPT-002 / AC-RPT-03 inventory CSV; FR-AUD-002 audit CSV (Owner); other report CSVs. No cost columns for non-finance roles. */
 export const GET = api<Ctx>(async (u, req, { params }) => {
   const { report } = await params;
+  if (u.role !== "Admin") throw new AppError("NOT_ALLOWED", "Reports and exports are for Admins only", 403);
   const sp = new URL(req.url).searchParams;
   if (report === "inventory.csv") {
     const rows = await listItems(u, {
@@ -57,7 +58,7 @@ export const GET = api<Ctx>(async (u, req, { params }) => {
     );
   }
   if (report === "audit-log.csv") {
-    if (u.role !== "Owner") throw new AppError("NOT_ALLOWED", "The global audit log is Owner only", 403);
+    if (u.role !== "Admin") throw new AppError("NOT_ALLOWED", "The global audit log is for Admins only", 403);
     const rows = await withUser(
       u.id,
       async (c) =>

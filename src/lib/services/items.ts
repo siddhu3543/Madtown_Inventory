@@ -195,7 +195,7 @@ export async function getItemFull(u: CurrentUser, id: string) {
     const fin = u.financeVisible ? ((await q("select * from item_financials where item_id = $1"))[0] ?? null) : null;
     const repairCosts = u.financeVisible ? await q("select mc.* from maintenance_costs mc join maintenance_events m on m.id = mc.event_id where m.item_id = $1") : [];
     const raw = u.financeVisible || u.isDeveloper ? ((await q("select * from item_import_raw where item_id = $1"))[0] ?? null) : null;
-    const audit = u.role === "Owner" || u.role === "Manager" ? await q("select * from app.item_audit($1) limit 200") : [];
+    const audit = u.role === "Admin" ? await q("select * from app.item_audit($1) limit 200") : [];
     const pendingRetirement = (await q("select * from retirement_requests where item_id = $1 and status = 'Pending'"))[0] ?? null;
     return {
       item,

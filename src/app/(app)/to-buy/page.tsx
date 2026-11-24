@@ -6,7 +6,7 @@ import { PageHeader, Badge, Flag } from "@/components/ui";
 export const metadata = { title: "To-buy" };
 /** SCR-17 wishlist with status, priority, approval actions, researched options */
 export default async function ToBuy({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   const rows = await withUser(
     u.id,

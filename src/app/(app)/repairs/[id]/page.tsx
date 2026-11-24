@@ -11,7 +11,7 @@ import { fmtDate, fmtDateTime, fmtRs } from "@/lib/format";
 export const metadata = { title: "Repair" };
 const STATES = ["Reported", "Sent for repair", "In repair", "Returned", "Closed"];
 export default async function Repair({ params }: { params: Promise<{ id: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const { id } = await params;
   const d = await withUser(u.id, async (c) => ({
     m: (

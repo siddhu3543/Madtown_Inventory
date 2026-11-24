@@ -5,7 +5,7 @@ import { fmtDateTime } from "@/lib/format";
 export const metadata = { title: "Audit log" };
 /** SCR-12 / FR-AUD-002: filtered global change history with CSV export; Owner only. Append-only (nobody can edit it). */
 export default async function AuditLog({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const u = await requireUser(["Owner"]);
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   const page = Math.max(0, Number(sp.page ?? 0));
   const rows = await withUser(

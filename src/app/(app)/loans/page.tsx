@@ -16,7 +16,7 @@ export default async function Loans({ searchParams }: { searchParams: Promise<Re
   if (sp.item) rows = rows.filter((r) => r.items.split(", ").some((x: string) => x.startsWith(sp.item + " ")));
   if (sp.evidence === "incomplete") rows = rows.filter((r) => r.pending_evidence > 0);
   const conflicts =
-    u.role === "Owner" || u.role === "Manager"
+    u.role === "Admin"
       ? await withUser(
           u.id,
           async (c) =>

@@ -5,7 +5,7 @@ import { PrintButton } from "@/components/PrintButton";
 export const metadata = { title: "Pick list" };
 /** FR-RPT-007 printable pick list */
 export default async function PickList({ searchParams }: { searchParams: Promise<{ shoot?: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const shoot = (await searchParams).shoot ?? "";
   const rows = await pickList(u, shoot);
   return (

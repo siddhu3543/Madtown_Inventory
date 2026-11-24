@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { login, U, sql } from "./helpers";
+import { login, U, sql, fillCheckout, fillCheckin } from "./helpers";
 
 test("AC-RPT-01: dashboard counts match the item list filters", async ({ page }) => {
   await login(page, U.owner);
@@ -60,18 +60,24 @@ test("AC-KIT-01/02: kit MTMH_182+183+184 checks out as one unit; check-in withou
   await expect(page.getByText("Added MTMH_182, MTMH_183, MTMH_184")).toBeVisible();
   await page.reload();
   await page.getByTestId("kit-checkout").click();
-  await page.getByTestId("borrower").selectOption({ label: "Chiru (no login)" });
+  // Chiru has no email or phone on file: the form asks for both, and they are saved with Chiru
+  await fillCheckout(page, { borrower: "Chiru (no login)", email: "chiru@example.com", phone: "+91 90000 22222" });
   await page.getByTestId("checkout-submit").click();
   await expect(page.getByTestId("checked-out")).toBeVisible();
   const st = await sql<{ status: string }>("select status from items where id in ('MTMH_182','MTMH_183','MTMH_184')");
   expect(st.every((s) => s.status === "Checked out")).toBe(true);
+  expect((await sql("select c.email, c.phone from people_contacts c join people p on p.id = c.person_id where p.name = 'Chiru'"))[0]).toEqual({
+    email: "chiru@example.com",
+    phone: "+91 90000 22222",
+  });
   await page.getByTestId("ret-MTMH_183").uncheck();
+  await fillCheckin(page);
   await page.getByRole("button", { name: "Check in", exact: true }).click();
   await expect(page.getByTestId("form-error")).toContainText(/required parts missing: MTMH_183/i);
   await expect(page.getByTestId("form-error")).toContainText("Record a missing part");
 });
 
-test("AC-BUY-02/03: Manager proposes, only Naveen approves (user+time recorded), receiving creates the next MTMH IDs", async ({ page }) => {
+test("AC-BUY-02/03: an Admin proposes, an Admin approves (user+time recorded), receiving creates the next MTMH IDs", async ({ page }) => {
   await login(page, U.manager);
   await page.goto("/to-buy/new");
   await page.getByLabel("Item", { exact: true }).fill("Spare NP-FZ100 battery");
@@ -80,7 +86,7 @@ test("AC-BUY-02/03: Manager proposes, only Naveen approves (user+time recorded),
   await page.getByRole("button", { name: "Propose" }).click();
   await expect(page).toHaveURL(/\/to-buy\/[0-9a-f-]{36}/);
   const url = page.url();
-  await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Approve" })).toHaveCount(1); // any Admin may approve (2026-11-24)
   await page.context().clearCookies();
   await login(page, U.owner);
   await page.goto(url);
@@ -106,7 +112,7 @@ test("AC-LST-03: scanning a Lost item offers Mark as found; confirming notifies 
   await expect(page.getByTestId("primary-action")).toHaveText("Mark as found");
   await page.locator("#found").getByLabel("Where was it found?").fill("Store room shelf 3");
   await page.getByRole("button", { name: "Confirm found" }).click();
-  await expect(page.getByTestId("form-ok")).toContainText("Managers were notified");
+  await expect(page.getByTestId("form-ok")).toContainText("Admins were notified");
   const n = await sql("select intended_recipients from notifications_log where event_code = 'FOUND' and item_id = 'MTMH_123'");
   expect(n[0].intended_recipients).toContain("anand@madtown.in");
   const a = await sql("select action from audit_log where item_id = 'MTMH_123' and action = 'found'");

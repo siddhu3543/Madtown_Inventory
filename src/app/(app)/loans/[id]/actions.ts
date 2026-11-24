@@ -16,22 +16,27 @@ export async function doCheckin(_: ActionState, fd: FormData): Promise<ActionSta
     const missing = lineIds
       .filter((id) => bool(fd, `mp_${id}`))
       .map((id) => ({ item_id: str(fd, `parent_for_mp`) || str(fd, `item_${id}`), description: `${str(fd, `item_${id}`)} not returned with kit` }));
-    const extraMissing = str(fd, "missing_description") ? [{ item_id: str(fd, "missing_item_id"), description: str(fd, "missing_description") }] : [];
+    const missingAnswer = str(fd, "missing_answer");
+    const extraMissing = missingAnswer === "yes" && str(fd, "missing_description") ? [{ item_id: str(fd, "missing_item_id"), description: str(fd, "missing_description") }] : [];
+    const damage = str(fd, "damage_answer") === "yes";
     const r = await checkin(u, {
       loan_id: loanId,
       lines,
       condition_in: str(fd, "condition_in") || null,
       photo_ids: list(fd, "photo_ids"),
-      notes: str(fd, "notes") || null,
+      notes: str(fd, "notes"),
       complete: !bool(fd, "partial"),
-      damage: bool(fd, "damage"),
-      create_repair: bool(fd, "damage"),
+      damage_answer: str(fd, "damage_answer"),
+      missing_answer: missingAnswer,
+      missing_description: str(fd, "missing_description"),
+      damage,
+      create_repair: damage,
       damage_description: str(fd, "damage_description") || null,
       backdated_at: fromIstInput(str(fd, "backdated_at")),
       backdate_reason: str(fd, "backdate_reason") || null,
       accessories,
       missing_parts: [...missing, ...extraMissing],
-      lost_place: str(fd, "lost_place") || null,
+      lost_place: str(fd, "lost_place"),
     });
     const q = new URLSearchParams({ done: "1" });
     if (r.condition_worse && !r.repair_ids.length) q.set("worse", "1");

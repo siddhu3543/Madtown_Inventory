@@ -2,7 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client } from "pg";
 
-export async function migrate(url: string, opts: { reset?: boolean; quiet?: boolean } = {}) {
+/** `until`: apply only migrations whose file name sorts before it (tests rebuild an older schema to check upgrades) */
+export async function migrate(url: string, opts: { reset?: boolean; quiet?: boolean; until?: string } = {}) {
   const local = ["127.0.0.1", "localhost"].includes(new URL(url).hostname);
   const dir = join(__dirname, "..", "supabase", "migrations");
   const c = new Client({ connectionString: url });
@@ -19,6 +20,7 @@ export async function migrate(url: string, opts: { reset?: boolean; quiet?: bool
       .filter((x) => x.endsWith(".sql"))
       .sort()) {
       if (done.has(f)) continue;
+      if (opts.until && f >= opts.until) break;
       const sql = readFileSync(join(dir, f), "utf8");
       try {
         await c.query("begin");

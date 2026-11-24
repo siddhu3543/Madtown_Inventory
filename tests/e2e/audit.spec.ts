@@ -1,14 +1,18 @@
 import { test, expect } from "@playwright/test";
 import { login, U } from "./helpers";
-test("AC-AUD-01: editing MTMH_112's name is recorded with user, time, before and after; Owner-only global log", async ({ page }) => {
+test("AC-AUD-01: editing MTMH_112's name is recorded with user, time, before and after; Admin-only global log", async ({ page }) => {
   await login(page, U.manager);
   await page.goto("/items/MTMH_112/edit");
   await page.getByLabel("Item name *").fill("Synthetic Light 112 renamed");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByTestId("item-audit")).toContainText("Synthetic Light 112 renamed"); // item-level history for Managers (D-03)
   await page.goto("/audit-log");
+  await expect(page).toHaveURL(/\/audit-log/); // every Admin sees the global log (2026-11-24)
+  await page.context().clearCookies();
+  await login(page, U.team);
+  await page.goto("/audit-log");
   await expect(page).toHaveURL(/\/forbidden/);
-  await expect(page.locator("body")).toContainText("cannot open this page"); // global log is Owner only
+  await expect(page.locator("body")).toContainText("cannot open this page"); // ... Staff never
   await page.context().clearCookies();
   await login(page, U.owner);
   await page.goto("/audit-log?record=MTMH_112");

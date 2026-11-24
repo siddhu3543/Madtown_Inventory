@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { login, U, sql } from "./helpers";
+import { login, U, sql, fillCheckout } from "./helpers";
 
 test("NFR-013/014: lookup works offline from cache; an offline check-out is queued, shown as NOT confirmed, then synced", async ({ page, context }) => {
   await login(page, U.team);
@@ -15,6 +15,7 @@ test("NFR-013/014: lookup works offline from cache; an offline check-out is queu
   await page.getByTestId("manual-id").fill("teleprompter");
   await expect(page.getByTestId("manual-matches")).toContainText("MTMH_203");
   await page.goto("/items/MTMH_193/checkout").catch(() => {});
+  await fillCheckout(page, { borrower: "Test Team Member (me)" });
   await page.getByTestId("checkout-submit").click();
   await expect(page.getByTestId("queued")).toContainText("NOT confirmed");
   await expect(page.getByTestId("offline-banner")).toContainText("1 action(s) queued");
@@ -30,6 +31,7 @@ test("NFR-014: a double check-out created offline is rejected by the server and 
   await login(page, U.team2);
   await page.goto("/items/MTMH_193/checkout"); // MTMH_193 is now out (previous test)
   await context.setOffline(true);
+  await fillCheckout(page, { borrower: "Second Team Member (me)" });
   await page.getByTestId("checkout-submit").click();
   await expect(page.getByTestId("queued")).toBeVisible();
   await context.setOffline(false);

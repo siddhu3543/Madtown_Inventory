@@ -45,6 +45,7 @@ function greeting() {
 /** SCR-02 / FR-RPT-001: counts use the same flags as the item list filters (AC-RPT-01). */
 export default async function Dashboard() {
   const u = await requireUser();
+  const isAdmin = can.admin(u); // Staff get the desk view: no repairs, service, purchasing or sync-conflict panels
   const [n, open] = await Promise.all([dashboardCounts(u), listLoans(u, { status: "open" })]);
   const extra = await withUser(u.id, async (c) => ({
     repairs: (
@@ -62,7 +63,7 @@ export default async function Dashboard() {
         `select id, item_description, priority from wishlist_items where status = 'To buy' order by case priority when 'High' then 0 when 'Medium' then 1 else 2 end limit 8`,
       )
     ).rows,
-    conflicts: u.role === "Owner" || u.role === "Manager" ? (await c.query(`select count(*)::int n from sync_conflicts where resolved_at is null`)).rows[0].n : 0,
+    conflicts: u.role === "Admin" ? (await c.query(`select count(*)::int n from sync_conflicts where resolved_at is null`)).rows[0].n : 0,
     // read-only aggregates over the same views the item list uses
     byStatus: (await c.query(`select display_status as label, count(*)::int as n from items_v where is_active group by 1 order by 2 desc`)).rows as { label: string; n: number }[],
     byType: (
@@ -85,16 +86,35 @@ export default async function Dashboard() {
   const legacy = open.filter((l) => l.legacy);
 
   // testId keeps the original tile-<label> ids stable (AC-RPT-01 e2e)
-  const kpis: { label: string; testId: string; v: number; href: string; icon: LucideIcon; tone: "brand" | "ok" | "warn" | "bad" | "muted"; alert?: boolean }[] = [
+  type Kpi = { label: string; testId: string; v: number; href: string; icon: LucideIcon; tone: "brand" | "ok" | "warn" | "bad" | "muted"; alert?: boolean; admin?: boolean };
+  const allKpis: Kpi[] = [
     { label: "Active items", testId: "tile-active-items", v: n.active, href: "/items", icon: Package, tone: "brand" },
     { label: "Items checked out", testId: "tile-out-now", v: n.out_now, href: "/items?view=out_now", icon: ArrowLeftRight, tone: "brand" },
     { label: "Overdue items", testId: "tile-overdue", v: n.overdue, href: "/items?view=overdue", icon: AlarmClock, tone: "bad", alert: n.overdue > 0 },
     { label: "Items in repair", testId: "tile-in-repair", v: n.in_repair, href: "/items?view=in_repair", icon: Wrench, tone: "warn" },
     { label: "Lost items", testId: "tile-lost", v: n.lost, href: "/items?view=lost", icon: SearchX, tone: "bad", alert: n.lost > 0 },
     { label: "Missing items", testId: "tile-missing", v: n.missing, href: "/items?view=missing", icon: CircleHelp, tone: "bad", alert: n.missing > 0 },
-    { label: "Due for service", testId: "tile-due-for-service", v: n.due_for_service, href: "/repairs#schedules", icon: CalendarClock, tone: "warn", alert: n.due_for_service > 0 },
-    { label: "To-buy awaiting approval", testId: "tile-to-buy-awaiting-approval", v: n.to_buy_awaiting, href: "/to-buy?status=To+buy", icon: ShoppingCart, tone: "warn" },
+    {
+      label: "Due for service",
+      testId: "tile-due-for-service",
+      v: n.due_for_service,
+      href: "/repairs#schedules",
+      icon: CalendarClock,
+      tone: "warn",
+      alert: n.due_for_service > 0,
+      admin: true,
+    },
+    {
+      label: "To-buy awaiting approval",
+      testId: "tile-to-buy-awaiting-approval",
+      v: n.to_buy_awaiting,
+      href: "/to-buy?status=To+buy",
+      icon: ShoppingCart,
+      tone: "warn",
+      admin: true,
+    },
   ];
+  const kpis = allKpis.filter((k) => isAdmin || !k.admin);
   const quality: [string, string, number, string][] = [
     ["Bad condition", "tile-bad-condition", n.bad_condition, "/items?view=bad_condition"],
     ["To verify", "tile-to-verify", n.to_verify, "/items?view=to_verify"],
@@ -102,19 +122,28 @@ export default async function Dashboard() {
     ["Incomplete evidence", "tile-incomplete-evidence", n.incomplete_evidence, "/loans?evidence=incomplete"],
   ];
 
-  const attention: { icon: LucideIcon; tone: string; title: string; text: string; n: number; href: string }[] = [
+  const attention: { icon: LucideIcon; tone: string; title: string; text: string; n: number; href: string; admin?: boolean }[] = [
     { icon: AlarmClock, tone: "bad", title: "Overdue equipment", text: "Loans past their due date", n: overdue.length, href: "/items?view=overdue" },
-    { icon: Wrench, tone: "warn", title: "Open repairs", text: "Reported, sent for repair or awaiting return", n: extra.repairs.length, href: "/repairs" },
-    { icon: CalendarClock, tone: "warn", title: "Service coming due", text: "Scheduled maintenance inside the reminder window", n: n.due_for_service, href: "/repairs#schedules" },
+    { icon: Wrench, tone: "warn", title: "Open repairs", text: "Reported, sent for repair or awaiting return", n: extra.repairs.length, href: "/repairs", admin: true },
+    {
+      icon: CalendarClock,
+      tone: "warn",
+      title: "Service coming due",
+      text: "Scheduled maintenance inside the reminder window",
+      n: n.due_for_service,
+      href: "/repairs#schedules",
+      admin: true,
+    },
     { icon: ShieldCheck, tone: "warn", title: "Needs verification", text: "Items flagged To verify (stock, model or details)", n: n.to_verify, href: "/items?view=to_verify" },
     { icon: Camera, tone: "muted", title: "Missing photographs", text: "Active items with no photo yet", n: n.missing_photos, href: "/items?view=missing_photos" },
     {
       icon: ShoppingCart,
       tone: "warn",
       title: "Purchases awaiting approval",
-      text: "To-buy lines ready for an Owner decision",
+      text: "To-buy lines ready for an Admin decision",
       n: n.to_buy_awaiting,
       href: "/to-buy?status=To+buy",
+      admin: true,
     },
     {
       icon: ClipboardCheck,
@@ -128,11 +157,12 @@ export default async function Dashboard() {
       icon: RefreshCw,
       tone: "bad",
       title: "Offline sync conflicts",
-      text: "Queued actions the server rejected — a Manager must resolve",
+      text: "Queued actions the server rejected — an Admin must resolve",
       n: extra.conflicts,
       href: "/loans?conflicts=1",
+      admin: true,
     },
-  ].filter((a) => a.n > 0);
+  ].filter((a) => a.n > 0 && (isAdmin || !a.admin));
 
   const statusSegs = extra.byStatus.map((s) => ({ label: s.label, value: s.n, color: STATUS_COLORS[s.label] ?? "var(--color-muted)" }));
   const stages = ["To research", "To buy", "Approved", "Ordered", "Received"];
@@ -237,7 +267,7 @@ export default async function Dashboard() {
               ["Open loans", open.length, "/loans", "var(--color-ink)"],
               ["Overdue", overdue.length, "/items?view=overdue", overdue.length ? "var(--color-bad)" : "var(--color-ink)"],
               ["Legacy to confirm", legacy.length, "/loans?legacy=1", legacy.length ? "var(--color-warn)" : "var(--color-ink)"],
-              ["Open repairs", extra.repairs.length, "/repairs", extra.repairs.length ? "var(--color-warn)" : "var(--color-ink)"],
+              ...(isAdmin ? [["Open repairs", extra.repairs.length, "/repairs", extra.repairs.length ? "var(--color-warn)" : "var(--color-ink)"]] : []),
             ].map(([label, v, href, c]) => (
               <Link
                 key={label as string}
@@ -252,17 +282,19 @@ export default async function Dashboard() {
             ))}
           </dl>
         </Section>
-        <Section
-          title="Procurement"
-          description="Wishlist lines by stage"
-          actions={
-            <Link href="/to-buy" className="text-sm font-semibold">
-              View all
-            </Link>
-          }
-        >
-          <BarRows rows={proc} color="var(--color-brand)" max={Math.max(1, ...proc.map((p) => p.value))} />
-        </Section>
+        {isAdmin && (
+          <Section
+            title="Procurement"
+            description="Wishlist lines by stage"
+            actions={
+              <Link href="/to-buy" className="text-sm font-semibold">
+                View all
+              </Link>
+            }
+          >
+            <BarRows rows={proc} color="var(--color-brand)" max={Math.max(1, ...proc.map((p) => p.value))} />
+          </Section>
+        )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2 [&>*]:min-w-0 [&>section]:mb-0">
@@ -317,52 +349,56 @@ export default async function Dashboard() {
             </p>
           )}
         </Section>
-        <Section title="In repair">
-          {extra.repairs.length === 0 ? (
-            <Empty icon={Wrench}>No open repairs.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2.5">
-              {extra.repairs.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <ItemLink id={r.item_id} name={r.name} /> <Badge v={r.state} /> {r.expected_back && <span className="muted text-sm">back {fmtDate(r.expected_back)}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-        <Section title="Due for service">
-          {extra.service.length === 0 ? (
-            <Empty icon={CalendarClock}>Nothing due in the next 7 days.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2.5">
-              {extra.service.map((s) => (
-                <li key={s.id}>
-                  {s.item_id ? <ItemLink id={s.item_id} name={s.label} /> : <b>All {s.label}</b>} <span className="muted">— {fmtDate(s.next_due)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-        <Section
-          title="To-buy awaiting approval"
-          actions={
-            <Link href="/to-buy" className="text-sm font-semibold">
-              View all
-            </Link>
-          }
-        >
-          {extra.toBuy.length === 0 ? (
-            <Empty icon={ShoppingCart}>Nothing waiting for a decision.</Empty>
-          ) : (
-            <ul className="flex flex-col gap-2.5">
-              {extra.toBuy.map((w) => (
-                <li key={w.id} className="flex flex-wrap items-center gap-2">
-                  <Link href={`/to-buy/${w.id}`}>{w.item_description}</Link> <Badge v={w.priority} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
+        {isAdmin && (
+          <>
+            <Section title="In repair">
+              {extra.repairs.length === 0 ? (
+                <Empty icon={Wrench}>No open repairs.</Empty>
+              ) : (
+                <ul className="flex flex-col gap-2.5">
+                  {extra.repairs.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <ItemLink id={r.item_id} name={r.name} /> <Badge v={r.state} /> {r.expected_back && <span className="muted text-sm">back {fmtDate(r.expected_back)}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+            <Section title="Due for service">
+              {extra.service.length === 0 ? (
+                <Empty icon={CalendarClock}>Nothing due in the next 7 days.</Empty>
+              ) : (
+                <ul className="flex flex-col gap-2.5">
+                  {extra.service.map((s) => (
+                    <li key={s.id}>
+                      {s.item_id ? <ItemLink id={s.item_id} name={s.label} /> : <b>All {s.label}</b>} <span className="muted">— {fmtDate(s.next_due)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+            <Section
+              title="To-buy awaiting approval"
+              actions={
+                <Link href="/to-buy" className="text-sm font-semibold">
+                  View all
+                </Link>
+              }
+            >
+              {extra.toBuy.length === 0 ? (
+                <Empty icon={ShoppingCart}>Nothing waiting for a decision.</Empty>
+              ) : (
+                <ul className="flex flex-col gap-2.5">
+                  {extra.toBuy.map((w) => (
+                    <li key={w.id} className="flex flex-wrap items-center gap-2">
+                      <Link href={`/to-buy/${w.id}`}>{w.item_description}</Link> <Badge v={w.priority} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          </>
+        )}
         <Section title="Recent activity" description="Latest check-outs and check-ins">
           {extra.recent.length === 0 ? (
             <Empty icon={ArrowLeftRight}>No loan activity yet.</Empty>

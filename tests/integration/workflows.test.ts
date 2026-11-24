@@ -28,7 +28,7 @@ describe("item ids (FR-CAT-001, AC-CAT-02)", () => {
     );
     expect(r[0].id).toBe("MTMH_206");
   });
-  it("Team members cannot add items; Manager-only (section 9)", async () => {
+  it("Staff cannot add items; Admin-only", async () => {
     await expect(as(U.team).wf("create_item", { name: "Nope", type: "Light" })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
   });
 });
@@ -42,12 +42,12 @@ describe("check-out / check-in (FR-CHK)", () => {
   it("blocks Camera check-out without photo, then succeeds with one (AC-CHK-01 pattern)", async () => {
     await expect(as(U.team).wf("checkout", { item_id: cam, condition_out: "Good" })).rejects.toMatchObject({ code: "PHOTO_REQUIRED" });
     const ph = await photo(U.team, cam, "Check-out");
-    const r = await as(U.team).wf<{ loan_id: string; due_at: string }>("checkout", { item_id: cam, condition_out: "Good", photo_ids: [ph] });
+    // the due date is mandatory now (2026-11-24); the form pre-fills the type default (2 days for Camera, FR-CHK-002)
+    await expect(as(U.team).wf("checkout", { item_id: cam, condition_out: "Good", photo_ids: [ph], due_at: null })).rejects.toMatchObject({ code: "DUE_REQUIRED" });
+    const due = new Date(Date.now() + 2 * 86400_000).toISOString();
+    const r = await as(U.team).wf<{ loan_id: string; due_at: string }>("checkout", { item_id: cam, condition_out: "Good", photo_ids: [ph], due_at: due });
     expect(r.loan_id).toBeTruthy();
-    // default due 2 days for Camera (FR-CHK-002)
-    const hours = (new Date(r.due_at).getTime() - Date.now()) / 3600_000;
-    expect(hours).toBeGreaterThan(47.9);
-    expect(hours).toBeLessThan(48.1);
+    expect(new Date(r.due_at).toISOString()).toBe(due);
     const it = await svc("select status, holder_person_id from items where id=$1", [cam]);
     expect(it[0].status).toBe("Checked out");
     expect(it[0].holder_person_id).toBe(U.team.personId);
@@ -58,10 +58,12 @@ describe("check-out / check-in (FR-CHK)", () => {
     await expect(as(U.manager).wf("checkout", { item_id: cam, borrower_person_id: chiru, condition_out: "Good", photo_ids: [ph] })).rejects.toMatchObject({ code: "ALREADY_OUT" });
   });
 
-  it("Team members cannot check out for someone else (section 9)", async () => {
+  it("Staff run the desk: they check out to any borrower and check in any loan (2026-11-24)", async () => {
     const tri = await newItem(U.manager, { name: "Test Tripod", type: "Tripod" });
-    await expect(as(U.team).wf("checkout", { item_id: tri, borrower_person_id: chiru, condition_out: "Good" })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
-    await expect(as(U.readonly).wf("checkout", { item_id: tri, condition_out: "Good" })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
+    const r = await as(U.team).wf<{ loan_id: string }>("checkout", { item_id: tri, borrower_person_id: chiru, condition_out: "Good" });
+    expect((await svc("select borrower_person_id, checked_out_by from loans where id=$1", [r.loan_id]))[0]).toEqual({ borrower_person_id: chiru, checked_out_by: U.team.id });
+    await as(U.team2).wf("checkin", { loan_id: r.loan_id, condition_in: "Good" });
+    expect((await svc("select status from loans where id=$1", [r.loan_id]))[0].status).toBe("Returned");
   });
 
   it("check-in worse condition flags prompt and can create linked repair (FR-CHK-005, AC-CHK-04)", async () => {
@@ -244,13 +246,14 @@ describe("lost and found (FR-LST, FR-LOAN-008, AC-LST-03 core)", () => {
     const res = await svc("select resolution from incidents where id=$1", [lost.incident_ids[0]]);
     expect(res[0].resolution).toBe("Found");
   });
-  it("Team report of loss marks Missing, not Lost (D-36); write-off needs Owner", async () => {
+  it("a Staff report of loss marks Missing, not Lost (D-36); an Admin writes it off directly", async () => {
     const it = await newItem(U.manager, { name: "Missing Clamp", type: "Accessory" });
     const r = await as(U.team).wf<{ incident_id: string }>("report_incident", { item_id: it, type: "Loss", mark: "Lost", description: "Cannot find it" });
     expect((await svc("select status from items where id=$1", [it]))[0].status).toBe("Missing");
+    await expect(as(U.team).wf("resolve_incident", { incident_id: r.incident_id, resolution: "Written off", note: "Gone" })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
+    // with two roles there is no separate approver: an Admin's write-off resolves at once
     const p = await as(U.manager).wf<{ status: string }>("resolve_incident", { incident_id: r.incident_id, resolution: "Written off", note: "Gone" });
-    expect(p.status).toBe("Pending write-off");
-    await as(U.owner).wf("decide_writeoff", { incident_id: r.incident_id, approve: true, comment: "ok" });
+    expect(p.status).toBe("Resolved");
     expect((await svc("select status, retirement_kind from items where id=$1", [it]))[0]).toMatchObject({ status: "Retired", retirement_kind: "Written off" });
   });
 });
@@ -272,19 +275,20 @@ describe("guards and audit (A5, FR-AUD-001, NFR-015, AC-AUD-01)", () => {
       [it],
     );
     expect(log[0]).toMatchObject({ actor_user_id: U.manager.id, before_json: { name: "Audit Light" }, after_json: { name: "Audit Light Renamed" } });
-    for (const who of [U.owner, U.manager, U.team, U.readonly]) {
+    for (const who of [U.owner, U.manager, U.team, U.dev]) {
       await expect(as(who).q("update audit_log set reason='x' where id=$1", [log[0].id])).rejects.toThrow();
       await expect(as(who).q("delete from audit_log where id=$1", [log[0].id])).rejects.toThrow();
     }
     await expect(svc("update audit_log set reason='x' where id=$1", [log[0].id])).rejects.toThrow();
-    expect(await as(U.manager).q("select * from audit_log")).toHaveLength(0); // global log Owner only
+    expect((await as(U.manager).q("select * from audit_log")).length).toBeGreaterThan(0); // global log: every Admin
+    expect(await as(U.team).q("select * from audit_log")).toHaveLength(0); // ... never Staff
     expect((await as(U.manager).q("select * from app.item_audit($1)", [it])).length).toBeGreaterThan(0); // item-level ok (D-03)
     expect(await as(U.team).q("select * from app.item_audit($1)", [it])).toHaveLength(0);
   });
 });
 
-describe("financial fields hidden from Team members (A5, NFR-004, AC-NFR-02 at DB level)", () => {
-  it("Team member and developer cannot read prices; Manager and Owner can", async () => {
+describe("financial fields hidden from Staff (A5, NFR-004, AC-NFR-02 at DB level)", () => {
+  it("Staff (including the developer) cannot read prices; Admins can", async () => {
     const it = await newItem(U.owner, { name: "Priced Lens", type: "Lens", purchase_price: 21999, vendor: "Kamal Imaging", notes: "Bought for Rs 21,999 incl GST" });
     expect(await as(U.team).q("select * from item_financials where item_id=$1", [it])).toHaveLength(0);
     expect(await as(U.dev).q("select * from item_financials where item_id=$1", [it])).toHaveLength(0);

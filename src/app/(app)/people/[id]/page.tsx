@@ -12,7 +12,7 @@ export const metadata = { title: "Borrower profile" };
 
 /** SCR-10 / FR-LOAN-006: open loans, overdue loans, loan history, items returned damaged, contact details */
 export default async function Person({ params }: { params: Promise<{ id: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const d = await personProfile(u, (await params).id);
   if (!d) notFound();
   const open = d.loans.filter((l) => l.status === "Open" || l.status === "Overdue");
@@ -107,7 +107,7 @@ export default async function Person({ params }: { params: Promise<{ id: string 
         </Section>
       </div>
       {can.people(u) && !d.person.is_madtown && (
-        <Section title="Details and contact (Managers only)">
+        <Section title="Details and contact (Admins only)">
           <ActionForm action={updatePerson} className="grid gap-2 sm:grid-cols-2">
             <input type="hidden" name="id" value={d.person.id} />
             <label className="field">

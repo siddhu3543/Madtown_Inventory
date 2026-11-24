@@ -26,8 +26,9 @@ export const env = {
   get appBaseUrl() {
     return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
   },
+  /** the configured value; adapters/storage.resolveStorageProvider decides what is actually used */
   get storageProvider() {
-    return (process.env.STORAGE_PROVIDER ?? "local") as "local" | "drive";
+    return (process.env.STORAGE_PROVIDER ?? "local") as "local" | "drive" | "supabase";
   },
   get emailProvider() {
     return (process.env.EMAIL_PROVIDER ?? "outbox") as "outbox" | "resend";

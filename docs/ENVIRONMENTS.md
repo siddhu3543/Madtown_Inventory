@@ -23,7 +23,7 @@ npm run dev                             # http://localhost:3000  (users: naveen@
 
 Local `.env.local` essentials: `APP_ENV=local`, `DATABASE_URL=postgres://app_server:app_server_local_only@127.0.0.1:54322/madtown_staging`,
 `MIGRATION_DATABASE_URL=postgres://postgres@127.0.0.1:54322/madtown_staging`, `AUTH_PROVIDER=local`, `ALLOW_LOCAL_AUTH=1`, `SESSION_SECRET=<random>`,
-`CRON_SECRET=<random>`, `STORAGE_PROVIDER=local`, `EMAIL_PROVIDER=outbox`, `EMAIL_SANDBOX_TO=staging-inbox@madtown.in`, `MIRROR_PROVIDER=csv`.
+`CRON_SECRET=<random>`, `STORAGE_PROVIDER=supabase` (local disk only for a local machine), `EMAIL_PROVIDER=outbox`, `EMAIL_SANDBOX_TO=staging-inbox@madtown.in`, `MIRROR_PROVIDER=csv`.
 
 ## Tests
 

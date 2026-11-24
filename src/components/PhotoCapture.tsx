@@ -4,7 +4,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { compressImage } from "@/lib/client/image";
 import { uploadInBackground } from "@/lib/client/photo-uploader";
 
-type P = { id: string; url: string; state: "uploading" | "uploaded" | "failed" };
+type P = { id: string; url: string; state: "uploading" | "uploaded" | "failed"; reason?: string };
 
 /** Camera capture inside the app (FR-PHO-003). Emits hidden inputs `photo_ids` for the enclosing form. */
 export function PhotoCapture({
@@ -28,11 +28,17 @@ export function PhotoCapture({
   useEffect(() => {
     const ok = (e: Event) => setPhotos((ps) => ps.map((p) => (p.id === (e as CustomEvent).detail ? { ...p, state: "uploaded" } : p)));
     const bad = (e: Event) => setPhotos((ps) => ps.map((p) => (p.id === (e as CustomEvent).detail ? { ...p, state: "failed" } : p)));
+    const why = (e: Event) => {
+      const d = (e as CustomEvent<{ id: string; reason: string }>).detail;
+      setPhotos((ps) => ps.map((p) => (p.id === d.id ? { ...p, state: "failed", reason: d.reason } : p)));
+    };
     window.addEventListener("mt-photo-uploaded", ok);
     window.addEventListener("mt-photo-failed", bad);
+    window.addEventListener("mt-photo-error", why);
     return () => {
       window.removeEventListener("mt-photo-uploaded", ok);
       window.removeEventListener("mt-photo-failed", bad);
+      window.removeEventListener("mt-photo-error", why);
     };
   }, []);
   async function onFiles(files: FileList | null) {
@@ -74,6 +80,14 @@ export function PhotoCapture({
           {err}
         </p>
       )}
+      {photos
+        .filter((p) => p.state === "failed" && p.reason)
+        .slice(-1)
+        .map((p) => (
+          <p key={p.id} role="alert" className="alert alert-warn text-sm" data-testid="photo-error">
+            Photo not uploaded yet: {p.reason}
+          </p>
+        ))}
       <div className="flex flex-wrap gap-2">
         {photos.map((p) => (
           <div key={p.id} className="relative">

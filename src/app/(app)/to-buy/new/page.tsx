@@ -4,7 +4,7 @@ import { ActionForm, Submit } from "@/components/ActionForm";
 import { propose } from "../actions";
 export const metadata = { title: "Propose to-buy" };
 export default async function NewToBuy({ searchParams }: { searchParams: Promise<{ related?: string; description?: string }> }) {
-  const u = await requireUser(["Owner", "Manager", "Team member"]);
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   return (
     <>

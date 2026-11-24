@@ -6,6 +6,7 @@ import { withUser } from "@/lib/db";
 import { can } from "@/lib/permissions";
 import { PageHeader, Badge } from "@/components/ui";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import { borrowerContactStatus } from "@/lib/services/loans";
 import { toIstInput } from "@/lib/format";
 import { doCheckout } from "./actions";
 
@@ -27,6 +28,10 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   const it = data.it;
   const due = new Date(Date.now() + (it.default_loan_days ?? 7) * 86400_000);
   const people = lk.people.filter((p) => !p.is_madtown && p.active).sort((a, b) => (a.id === u.personId ? -1 : b.id === u.personId ? 1 : a.name.localeCompare(b.name)));
+  const contactStatus = await borrowerContactStatus(
+    u,
+    people.map((x) => x.id),
+  );
   return (
     <>
       <PageHeader
@@ -44,7 +49,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
       />
       {!it.loan_days_confirmed && (
         <p className="muted mb-2 text-sm">
-          Default loan period for {it.type}: {it.default_loan_days} days (proposal; Owner to confirm in Settings).
+          Default loan period for {it.type}: {it.default_loan_days} days (proposal; an Admin confirms it in Settings).
         </p>
       )}
       <div className="card p-4">
@@ -66,6 +71,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
           defaultCondition={it.condition}
           defaultDue={toIstInput(due)}
           locations={lk.locations}
+          contactStatus={contactStatus}
           borrowerOverdue={data.overdue}
         />
       </div>

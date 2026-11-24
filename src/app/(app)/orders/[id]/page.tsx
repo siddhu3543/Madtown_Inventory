@@ -11,7 +11,7 @@ import { cancelOrder, receive } from "../actions";
 import { fmtDate, fmtRs } from "@/lib/format";
 export const metadata = { title: "Order" };
 export default async function Order({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ received?: string }> }) {
-  const u = await requireUser(["Owner", "Manager", "Read-only"]);
+  const u = await requireUser(["Admin"]);
   const { id } = await params;
   const sp = await searchParams;
   const d = await withUser(u.id, async (c) => ({

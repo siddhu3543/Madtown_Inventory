@@ -9,7 +9,7 @@ export const metadata = { title: "Unsorted items" };
 /** SCR-21: rows from Not yet sorted with question, who can answer, status, convert to item */
 export default async function Unsorted() {
   const u = await requireUser();
-  if (!can.unsorted(u)) return <p>Managers only.</p>;
+  if (!can.unsorted(u)) return <p>Admins only.</p>;
   const [rows, lk] = await Promise.all([
     withUser(u.id, async (c) => (await c.query("select * from unsorted_items order by (status = 'Converted'), sheet_row nulls last")).rows),
     lookups(u),

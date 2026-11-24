@@ -31,8 +31,9 @@ describe("FR-CHK-012 reservations", () => {
       d(0.01),
       d(3),
     ]);
+    // reservations are Admin-only since 2026-11-24: an Admin tries to book an overlapping slot for a Staff member
     await expect(
-      as(U.team).q("insert into reservations(item_id, person_id, shoot, starts_at, ends_at, created_by) values ($1,$2,'Other',$3,$4,auth.uid())", [
+      as(U.owner).q("insert into reservations(item_id, person_id, shoot, starts_at, ends_at, created_by) values ($1,$2,'Other',$3,$4,auth.uid())", [
         id,
         U.team.personId,
         d(1),
@@ -58,14 +59,17 @@ describe("FR-BUY-009 verify before buy; FR-CON-010 linked to-buy from a defect",
     expect(r.status).toBe("Approved");
     await expect(as(U.owner).wf("decide_wishlist", { wishlist_id: w, approve: false })).rejects.toMatchObject({ code: "BAD_STATUS" });
   });
-  it("a Team member creates a linked to-buy line for a defect in one step", async () => {
+  it("an Admin creates a linked to-buy line for a defect in one step; Staff cannot (2026-11-24)", async () => {
     const id = await newItem(U.manager, { name: "Scratched filter", type: "Accessory" });
+    await expect(
+      as(U.team).q("insert into wishlist_items(item_description, replaces_or_adds, priority, status) values ('Staff idea','Replaces','Medium','To buy')"),
+    ).rejects.toMatchObject({ code: "NOT_ALLOWED" });
     const w = (
-      await as(U.team).q<{ id: string }>(
+      await as(U.manager).q<{ id: string }>(
         "insert into wishlist_items(item_description, reason, replaces_or_adds, priority, status) values ('Replacement filter','Heavily scratched','Replaces','Medium','To buy') returning id",
       )
     )[0].id;
-    await as(U.team).q("insert into wishlist_related_items(wishlist_id, item_id) values ($1,$2)", [w, id]);
+    await as(U.manager).q("insert into wishlist_related_items(wishlist_id, item_id) values ($1,$2)", [w, id]);
     expect((await svc("select item_id from wishlist_related_items where wishlist_id=$1", [w]))[0].item_id).toBe(id);
   });
 });
@@ -81,7 +85,8 @@ describe("FR-PHO-005 promote check-in photo to Latest; previous stays in history
     expect((await svc("select count(*)::int n from photos where item_id=$1", [id]))[0].n).toBe(2);
     const p3 = await photo(U.team2, id, "Check-in");
     await expect(as(U.team).wf("promote_latest_photo", { photo_id: p3 })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
-    await expect(as(U.readonly).wf("promote_latest_photo", { photo_id: p2 })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
+    await as(U.manager).wf("promote_latest_photo", { photo_id: p3 }); // an Admin may promote anyone's photo
+    expect((await svc("select latest_photo_id from items where id=$1", [id]))[0].latest_photo_id).toBe(p3);
   });
 });
 
@@ -90,7 +95,9 @@ describe("FR-AUD-006/008 walkthrough bulk Missing and last audited", () => {
     const a = await newItem(U.manager, { name: "Walk A", type: "Reflector" });
     const b = await newItem(U.manager, { name: "Walk B", type: "Reflector" });
     const au = (await as(U.manager).q<{ id: string }>("insert into audits(scope_kind, scope_value, started_by) values ('Type','Reflector',auth.uid()) returning id"))[0].id;
-    await as(U.team).wf("record_audit_line", { audit_id: au, item_id: a, result: "Found" });
+    // walkthroughs are Admin-only since 2026-11-24
+    await expect(as(U.team).wf("record_audit_line", { audit_id: au, item_id: a, result: "Found" })).rejects.toMatchObject({ code: "NOT_ALLOWED" });
+    await as(U.owner).wf("record_audit_line", { audit_id: au, item_id: a, result: "Found" });
     const l = await as(U.manager).wf<{ line_id: string }>("record_audit_line", { audit_id: au, item_id: b, result: "Not found" });
     await as(U.manager).wf("apply_audit_correction", { line_id: l.line_id, action: "mark_missing" });
     expect((await svc("select status from items where id=$1", [b]))[0].status).toBe("Missing");
@@ -104,8 +111,8 @@ describe("FR-AUD-006/008 walkthrough bulk Missing and last audited", () => {
 describe("FR-RPT-003/004/005/007 reports run and hide cost from Team members", () => {
   it("loans by person/project, repairs, utilisation, pick list", async () => {
     const { loansReport, repairsReport, utilisation, pickList, assetValue } = await import("@/lib/services/reports");
-    const team = { ...U.team, role: "Team member" as const, isDeveloper: false, financeVisible: false, sessionVersion: 1 };
-    const owner = { ...U.owner, role: "Owner" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
+    const team = { ...U.team, role: "Staff" as const, isDeveloper: false, financeVisible: false, sessionVersion: 1 };
+    const owner = { ...U.owner, role: "Admin" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
     const lr = await loansReport(owner, "2000-01-01", "2100-01-01");
     expect(lr.byPerson.length).toBeGreaterThan(0);
     const rr = await repairsReport(team);

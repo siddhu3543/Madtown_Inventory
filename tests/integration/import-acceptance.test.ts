@@ -59,7 +59,7 @@ describe("migration (G-09, MIG-001..016, NFR-016)", () => {
 describe("catalog ACs", () => {
   it("AC-CAT-03: searching FX3 returns MTMH_101 and MTMH_163..166 within 1 second", async () => {
     const { listItems } = await import("@/lib/services/items");
-    const user = { ...U.team, role: "Team member" as const, isDeveloper: false, financeVisible: false, sessionVersion: 1 };
+    const user = { ...U.team, role: "Staff" as const, isDeveloper: false, financeVisible: false, sessionVersion: 1 };
     const t0 = performance.now();
     const rows = await listItems(user, { q: "FX3" });
     const ms = performance.now() - t0;
@@ -72,7 +72,7 @@ describe("catalog ACs", () => {
     );
     expect(r[0]).toMatchObject({ owner_name: "Anand", flag_owned_by_others: true, status: "Available" });
     const { assetValue } = await import("@/lib/services/reports");
-    const owner = { ...U.owner, role: "Owner" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
+    const owner = { ...U.owner, role: "Admin" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
     const av = await assetValue(owner);
     expect(av.items.map((i: { id: string }) => i.id)).not.toContain("MTMH_115");
     expect(av.excludedPersonal.map((i: { id: string }) => i.id)).toContain("MTMH_115");
@@ -152,14 +152,14 @@ describe("loans / lost / repair ACs on imported data", () => {
   });
   it("AC-LOAN-02: legacy loan of MTMH_126 to Purushotham is open on his profile", async () => {
     const { personProfile } = await import("@/lib/services/loans");
-    const owner = { ...U.owner, role: "Owner" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
+    const owner = { ...U.owner, role: "Admin" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
     const d = await personProfile(owner, await personId("Purushotham"));
     const open = d!.loans.filter((l) => l.status === "Open");
     expect(open.some((l) => l.items.includes("MTMH_126") && l.legacy)).toBe(true);
   });
   it("AC-LOAN-03: Chiru shows the returned MTMH_103 loan and the MTMH_148 holding", async () => {
     const { personProfile } = await import("@/lib/services/loans");
-    const owner = { ...U.owner, role: "Owner" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
+    const owner = { ...U.owner, role: "Admin" as const, isDeveloper: false, financeVisible: true, sessionVersion: 1 };
     const d = await personProfile(owner, await personId("Chiru"));
     expect(d!.loans.some((l) => l.items.includes("MTMH_103") && l.status === "Returned")).toBe(true);
     expect(d!.holdings.some((h) => h.item_id === "MTMH_148")).toBe(true);
@@ -167,7 +167,8 @@ describe("loans / lost / repair ACs on imported data", () => {
     expect(new Date(ret.checked_in_at).toISOString().slice(0, 10)).toBe("2026-10-16"); // FR-CHK-014 example date
   });
   it("AC-KIT-03: MTMH_109 shows a missing charging cable linked to the to-buy line", async () => {
-    const r = await as(U.team).q<{ description: string; item_description: string }>(
+    // to-buy is Admin-only since 2026-11-24
+    const r = await as(U.manager).q<{ description: string; item_description: string }>(
       "select m.description, w.item_description from missing_parts m join wishlist_items w on w.id = m.wishlist_id where m.item_id = 'MTMH_109'",
     );
     expect(r[0].description).toMatch(/charging cable/i);
@@ -175,7 +176,7 @@ describe("loans / lost / repair ACs on imported data", () => {
   });
   it("AC-BUY-01: 25 To buy lines with priority and status; hard case line on MTMH_106", async () => {
     expect((await svc("select count(*)::int n from wishlist_items"))[0].n).toBe(25);
-    const r = await as(U.team).q(
+    const r = await as(U.manager).q(
       "select w.item_description, w.priority, w.status from wishlist_related_items r join wishlist_items w on w.id = r.wishlist_id where r.item_id = 'MTMH_106'",
     );
     expect(r).toEqual(expect.arrayContaining([expect.objectContaining({ item_description: "Hard camera and lens case", priority: "High", status: "To buy" })]));

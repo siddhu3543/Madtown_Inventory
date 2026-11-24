@@ -8,7 +8,7 @@ export const metadata = { title: "Reports" };
 
 /** SCR-20 / FR-RPT-002..007, FR-CON-009. Team members get limited reports without cost (section 9). */
 export default async function Reports({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const sp = await searchParams;
   const tab = sp.tab ?? "inventory";
   const today = new Date().toISOString().slice(0, 10);

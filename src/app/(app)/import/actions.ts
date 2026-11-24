@@ -30,7 +30,7 @@ export async function run(_: ActionState, fd: FormData): Promise<ActionState> {
     const u = await requireUser();
     const mode = (str(fd, "mode") || "dry-run") as ImportMode;
     if (!["dry-run", "apply"].includes(mode)) throw new AppError("BAD_MODE", "Choose Preview or Import");
-    if (!(u.role === "Owner" || (u.isDeveloper && mode === "dry-run"))) throw new AppError("NOT_ALLOWED", "Only the Owner runs a real import; the developer may run previews");
+    if (!(u.role === "Admin" || (u.isDeveloper && mode === "dry-run"))) throw new AppError("NOT_ALLOWED", "Only an Admin runs a real import; the developer may run previews");
     const replace = str(fd, "replace") === "on";
     const useFixture = str(fd, "source") === "fixture" && !env.isProductionEnv;
 

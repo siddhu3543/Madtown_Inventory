@@ -150,7 +150,7 @@ export default async function ItemPage({
       )}
       {sp.found && (
         <p role="status" className="alert alert-ok mb-4 font-medium" data-testid="form-ok">
-          <CheckCircle2 size={18} aria-hidden /> Marked as found. Managers were notified.
+          <CheckCircle2 size={18} aria-hidden /> Marked as found. Admins were notified.
         </p>
       )}
       {sp.created && (
@@ -991,8 +991,8 @@ export default async function ItemPage({
             </Section>
           )}
 
-          {(can.retireDirect(u) || can.proposeRetire(u)) && it.is_active && (
-            <Section title={can.retireDirect(u) ? "Retire, sell or write off" : "Propose retire, sale or write-off"}>
+          {can.retireDirect(u) && it.is_active && (
+            <Section title="Retire, sell or write off">
               {d.pendingRetirement ? (
                 <div>
                   <p>
@@ -1026,7 +1026,7 @@ export default async function ItemPage({
                     <span>Reason</span>
                     <input name="reason" className="input" required />
                   </label>
-                  <Submit className="btn btn-secondary">{can.retireDirect(u) ? "Retire now" : "Send for approval"}</Submit>
+                  <Submit className="btn btn-secondary">Retire now</Submit>
                 </ActionForm>
               )}
             </Section>

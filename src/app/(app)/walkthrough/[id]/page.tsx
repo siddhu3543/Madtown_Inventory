@@ -12,7 +12,7 @@ import { fmtDateTime } from "@/lib/format";
 export const metadata = { title: "Walkthrough session" };
 
 export default async function Session({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ item?: string }> }) {
-  const u = await requireUser();
+  const u = await requireUser(["Admin"]);
   const { id } = await params;
   const sp = await searchParams;
   const d = await withUser(u.id, async (c) => {

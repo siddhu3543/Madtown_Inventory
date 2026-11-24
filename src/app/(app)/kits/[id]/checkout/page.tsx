@@ -5,6 +5,7 @@ import { lookups } from "@/lib/services/items";
 import { can } from "@/lib/permissions";
 import { PageHeader } from "@/components/ui";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import { borrowerContactStatus } from "@/lib/services/loans";
 import { toIstInput } from "@/lib/format";
 import { kitCheckout } from "../../actions";
 export const metadata = { title: "Check out kit" };
@@ -28,6 +29,10 @@ export default async function KitCheckout({ params }: { params: Promise<{ id: st
   const lk = await lookups(u);
   const days = Math.min(...d.parts.map((p) => p.default_loan_days ?? 7), 7);
   const people = lk.people.filter((p) => !p.is_madtown && p.active).sort((a, b) => (a.id === u.personId ? -1 : b.id === u.personId ? 1 : a.name.localeCompare(b.name)));
+  const contactStatus = await borrowerContactStatus(
+    u,
+    people.map((x) => x.id),
+  );
   return (
     <>
       <PageHeader title={`Check out ${d.kit.id} ${d.kit.name}`} phase={2} />
@@ -50,6 +55,7 @@ export default async function KitCheckout({ params }: { params: Promise<{ id: st
           defaultCondition="Good"
           defaultDue={toIstInput(new Date(Date.now() + days * 86400000))}
           locations={lk.locations}
+          contactStatus={contactStatus}
           borrowerOverdue={d.od}
         />
       </div>

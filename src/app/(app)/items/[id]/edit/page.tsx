@@ -7,7 +7,7 @@ import { ItemForm } from "@/components/ItemForm";
 import { update } from "../../new/actions";
 export const metadata = { title: "Edit item" };
 export default async function EditItem({ params }: { params: Promise<{ id: string }> }) {
-  const u = await requireUser(["Owner", "Manager"]);
+  const u = await requireUser(["Admin"]);
   const id = decodeURIComponent((await params).id).toUpperCase();
   const d = await withUser(u.id, async (c) => ({
     item: (await c.query("select * from items_v where id = $1", [id])).rows[0],

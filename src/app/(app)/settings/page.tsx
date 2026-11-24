@@ -5,11 +5,15 @@ import { PageHeader, Section, Badge, Flag } from "@/components/ui";
 import { ActionForm, Submit } from "@/components/ActionForm";
 import * as A from "./actions";
 import { fmtDateTime } from "@/lib/format";
+import { resolveStorageProvider } from "@/lib/adapters/storage";
+
+const ROLES = ["Staff", "Admin"] as const;
 export const metadata = { title: "Settings" };
 
-/** SCR-22: Types, subtypes, default loan periods, reminder rules, mandatory photo rules, users and roles; Owner only */
+/** SCR-22: Types, subtypes, default loan periods, reminder rules, mandatory photo rules, users and roles; Admin only */
 export default async function Settings({ searchParams }: { searchParams: Promise<{ offboarded?: string }> }) {
-  const u = await requireUser(["Owner"]);
+  const u = await requireUser(["Admin"]);
+  const photoStore = resolveStorageProvider();
   const sp = await searchParams;
   const d = await withUser(u.id, async (c) => ({
     types: (await c.query("select * from item_types order by status, sort, name")).rows,
@@ -29,7 +33,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           Access revoked for {sp.offboarded}. Their open sessions stop working on the next request. Follow the offboarding checklist in docs/OFFBOARDING.md.
         </p>
       )}
-      <PageHeader title="Settings" sub="Owner only. Defaults marked “to confirm” come from the spec's open questions (docs/OPEN_QUESTIONS.md)." />
+      <PageHeader title="Settings" sub="Admins only. Defaults marked “to confirm” come from the spec's open questions (docs/OPEN_QUESTIONS.md)." />
       <Section title="Types: default loan period and photo rules (FR-CHK-002/003, FR-CON-006)">
         <div className="overflow-x-auto">
           <table className="tbl text-sm">
@@ -156,7 +160,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <tr>
               <th>Name</th>
               <th>Login</th>
-              <th>Role / finance / developer</th>
+              <th>Role / developer</th>
               <th>Last login</th>
               <th />
             </tr>
@@ -174,14 +178,9 @@ export default async function Settings({ searchParams }: { searchParams: Promise
                     <ActionForm action={A.updateUser} className="flex flex-wrap gap-1">
                       <input type="hidden" name="id" value={x.id} />
                       <select name="role" className="input w-36" defaultValue={x.role}>
-                        {["Owner", "Manager", "Team member", "Read-only"].map((r) => (
+                        {ROLES.map((r) => (
                           <option key={r}>{r}</option>
                         ))}
-                      </select>
-                      <select name="finance_access" className="input w-36" defaultValue={x.finance_access}>
-                        <option value="default">finance: role default</option>
-                        <option value="on">finance: on</option>
-                        <option value="off">finance: off</option>
                       </select>
                       <label className="flex items-center gap-1">
                         <input type="checkbox" name="developer" defaultChecked={x.is_developer} /> dev
@@ -211,7 +210,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
           <input name="name" className="input" placeholder="Name" required />
           <input name="email" type="email" className="input" placeholder="name@madtown.in" required />
           <select name="role" className="input">
-            {["Team member", "Manager", "Read-only", "Owner"].map((r) => (
+            {ROLES.map((r) => (
               <option key={r}>{r}</option>
             ))}
           </select>
@@ -306,7 +305,8 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       </Section>
       <Section title="Environment">
         <p className="text-sm">
-          APP_ENV {env.appEnv} · auth {env.authProvider} · storage {env.storageProvider} · email {env.emailProvider}
+          APP_ENV {env.appEnv} · auth {env.authProvider} · storage {photoStore.provider}
+          {photoStore.note ? ` (${photoStore.note})` : ""} · email {env.emailProvider}
           {env.emailSandboxTo ? ` (sandbox → ${env.emailSandboxTo})` : ""} · mirror {env.mirrorProvider} · QR base {env.qrBaseUrl}
         </p>
       </Section>
